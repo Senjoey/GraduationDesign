@@ -82,8 +82,8 @@ DATABASES = {
         'NAME': 'quanter',
         'USER': 'root',
         'PASSWORD': 'liufengnju',
-        'HOST':'114.212.242.143',
-        'PORT':'3306',
+        'HOST': '114.212.242.143',
+        'PORT': '3306',
     }
     # 'default': {
     #     'ENGINE': 'django.db.backends.mysql',  # 或者使用 mysql.connector.django

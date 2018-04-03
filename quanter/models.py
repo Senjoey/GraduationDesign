@@ -31,11 +31,42 @@ class Ma(models.Model):
 
 class Mystock(models.Model):
     id = models.IntegerField(max_length=11, primary_key=True)
-    code = models.TextField()
+    code = models.TextField(max_length=255)
     name = models.TextField()
     c_name = models.TextField()
 
 
+class FirstHundredStock2014yield(models.Model):
+    id = models.IntegerField(primary_key=True)
+    code = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    yield2014 = models.FloatField()
 
 
+class FirstHundredStock2015yield(models.Model):
+    id = models.IntegerField(primary_key=True)
+    code = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    yield2015 = models.FloatField()
+
+
+class FirstHundredStock2016yield(models.Model):
+    id = models.IntegerField(primary_key=True)
+    code = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    yield2016 = models.FloatField()
+
+
+class FirstHundredStock2017yield(models.Model):
+    id = models.IntegerField(primary_key=True)
+    code = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    yield2017 = models.FloatField()
+
+
+class FirstHundredStock2018yield(models.Model):
+    id = models.IntegerField(primary_key=True)
+    code = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    yield2018 = models.FloatField()
 
