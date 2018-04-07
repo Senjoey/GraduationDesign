@@ -2,12 +2,13 @@ from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
 from quanter.models import FirstHundredStock2014yield, FirstHundredStock2015yield, FirstHundredStock2016yield, \
-    FirstHundredStock2017yield, FirstHundredStock2018yield
+    FirstHundredStock2017yield, FirstHundredStock2018yield, Stockpool
 import pandas as pd
 import json
 import datetime
 import numpy as np
 from sqlalchemy import create_engine
+from django.shortcuts import render
 
 
 def merge_three_year_yield(request):
@@ -188,12 +189,12 @@ def test_all_stock_buy_when_large_departure(request):
     for stock in all_stocks:
         print('处理stock: ', stock.name)
         # 获取股票的收盘价
-        start_date = datetime.date(2017, 1, 1)
-        end_date = datetime.date(2017, 12, 31)
+        start_date = datetime.date(2014, 1, 1)
+        end_date = datetime.date(2014, 12, 31)
         close_datas = data_service.get_stock_data(stock.code, start_date, end_date)
         if len(close_datas) == 0:
             stock_yield = 0
-            capital_item = {'code': stock.code, 'name': stock.name, 'yield2017': stock_yield}
+            capital_item = {'code': stock.code, 'name': stock.name, 'yield2014': stock_yield}
             print('处理stock: ', capital_item)
             capital_list.append(capital_item)
             continue
@@ -213,8 +214,7 @@ def test_all_stock_buy_when_large_departure(request):
         prices_and_ma_related = ma_res_round[4:]
         buy_flag = np.where((prices_and_ma_related['close'] < prices_and_ma_related['ma20']) &
                             (prices_and_ma_related['ma20_departure_value'] <= -3.6), 1, 0)
-        sell_flag = np.where((prices_and_ma_related['ma20_departure_value'] > 0) &
-                             (prices_and_ma_related['ma20_departure_value'] < 15), -1, buy_flag)
+        sell_flag = np.where((prices_and_ma_related['ma20_departure_value'] > -1), -1, buy_flag)
         buy_and_sell_signal = pd.Series(sell_flag, prices_and_ma_related.index)
         # print('buy_and_sell_signal: ', buy_and_sell_signal)
         # 计算三年的收益率
@@ -236,14 +236,13 @@ def test_all_stock_buy_when_large_departure(request):
                     asset = close_series[date_index[i]] * hold_sum
                     hold_sum = 0
         stock_yield = 100 * (asset - 100000.0) / 100000.0
-        capital_item = {'code': stock.code, 'name': stock.name, 'yield2017': stock_yield}
+        capital_item = {'code': stock.code, 'name': stock.name, 'yield2014': stock_yield}
         print('处理stock: ', capital_item)
         capital_list.append(capital_item)
     capital = pd.DataFrame(capital_list)
     engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test2?charset=utf8')
-    capital.to_sql('quanter_firsthundredstock2017buywhenlargedeparture', engine, if_exists='append')
+    capital.to_sql('quanter_firsthundredstock2014buywhenlargedeparturetry', engine, if_exists='append')
     return HttpResponse("查询数据成功.")
-
 
 
 # 有每一天的收益率
@@ -256,8 +255,8 @@ def test_one_stock_buy_when_large_departure(request):
     for stock in all_stocks:
         print('处理stock: ', stock.name)
         # 获取股票的收盘价
-        start_date = datetime.date(2014, 1, 1)
-        end_date = datetime.date(2014, 12, 31)
+        start_date = datetime.date(2017, 1, 1)
+        end_date = datetime.date(2017, 12, 31)
         close_datas = data_service.get_stock_data(stock.code, start_date, end_date)
         print('close_datas: ', close_datas)
 
@@ -274,8 +273,7 @@ def test_one_stock_buy_when_large_departure(request):
         prices_and_ma_related = ma_res_round[4:]
         buy_flag = np.where((prices_and_ma_related['close'] < prices_and_ma_related['ma20']) &
                             (prices_and_ma_related['ma20_departure_value'] <= -3.6), 1, 0)
-        sell_flag = np.where((prices_and_ma_related['ma20_departure_value'] > 0) &
-                             (prices_and_ma_related['ma20_departure_value'] < 15), -1, buy_flag)
+        sell_flag = np.where(prices_and_ma_related['ma20_departure_value'] > -1, -1, buy_flag)
         buy_and_sell_signal = pd.Series(sell_flag, prices_and_ma_related.index)
         print('buy_and_sell_signal: ', buy_and_sell_signal)
         # 计算三年的收益率
@@ -305,7 +303,7 @@ def test_one_stock_buy_when_large_departure(request):
         capital = pd.DataFrame(data={'hold': hold_sum_series, 'asset': asset_series, 'yield': daily_stock_yield_series},
                                index=prices_and_ma_related.index)
         engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test2?charset=utf8')
-        capital.to_sql('quanter_buylargedeparture2014', engine, if_exists='append')
+        capital.to_sql('quanter_buylargedeparture2017one', engine, if_exists='append')
         return HttpResponse("查询数据成功.")
 
 
@@ -368,7 +366,48 @@ def back_test(request):
 
 
 def test_three_k(request):
-    pass
+    return render(request, 'quanter/StrategyIntroduction.html')
+
+
+def stock_charts(request):
+    return render(request, 'quanter/StockCharts.html')
+
+
+def strategy_introduction(request):
+    return render(request, 'quanter/StrategyIntroduction.html')
+
+
+def stock_table(request):
+    context = {'res_list': Stockpool.objects.filter(isInPool=1)}
+    return render(request, 'quanter/StockTable.html', context)
+
+
+def check_stock(request, code):
+    # 数据库操作，将对应股票从我的自选股中加入或删除
+    stock = Stockpool.objects.filter(code=code)[0]
+    if stock.isChecked == 0:
+        stock.isChecked = 1
+    else:
+        stock.isChecked = 0
+    stock.save()
+    context = {'res_list': Stockpool.objects.filter(isInPool=1)}
+    return render(request, 'quanter/StockTable.html', context)
+
+
+def stock_mine(request):
+    context = {'res_list': Stockpool.objects.filter(isInPool=1, isChecked=1)}
+    return render(request, 'quanter/StockMine.html', context)
+
+
+def delete_my_stock(request, code):
+    stock = Stockpool.objects.filter(code=code)[0]
+    stock.isChecked = 0
+    context = {'res_list': Stockpool.objects.filter(isInPool=1, isChecked=1)}
+    return render(request, 'quanter/StockMine.html', context)
+
+
+
+
 
 
 

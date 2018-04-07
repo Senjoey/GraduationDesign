@@ -1,4 +1,4 @@
-from quanter.models import Dailydata, Ma, Stock
+from quanter.models import Dailydata, Ma, Stock, Mystock
 import pandas as pd
 
 
@@ -7,6 +7,15 @@ class StockDataService(object):
     def get_stock_data(self, code, start_date, end_date):
         data_query_set = Dailydata.objects.filter(date__range=(start_date, end_date), code__in=[code])
         df = pd.DataFrame(list(data_query_set.values('date', 'close')))
+        if len(df) == 0:
+            return df
+        df.set_index('date', inplace=True)
+        df.sort_index()
+        return df
+
+    def get_stock_data_by_code(self, code, star_date, end_date):
+        data_query_set = Dailydata.objects.filter(date__range=(star_date, end_date), code__in=[code])
+        df = pd.DataFrame(list(data_query_set.values('date', 'close', 'open')))
         if len(df) == 0:
             return df
         df.set_index('date', inplace=True)
@@ -26,3 +35,8 @@ class StockDataService(object):
 
     def get_stock_by_code(self, code):
         return Stock.objects.filter(code=code)
+
+    def get_mystock_by_code(self, code):
+        return Mystock.objects.filter(code=code)
+
+

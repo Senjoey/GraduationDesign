@@ -35,6 +35,14 @@ class Mystock(models.Model):
     name = models.TextField()
     c_name = models.TextField()
 
+class Stockpool(models.Model):
+    id = models.IntegerField(primary_key=True)
+    code = models.TextField()
+    name = models.TextField()
+    profit = models.FloatField()
+    isInPool = models.IntegerField()
+    isChecked = models.IntegerField()
+
 
 class FirstHundredStock2014yield(models.Model):
     id = models.IntegerField(primary_key=True)
