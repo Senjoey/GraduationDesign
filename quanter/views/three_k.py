@@ -2,13 +2,16 @@ from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
 from quanter.models import FirstHundredStock2014yield, FirstHundredStock2015yield, FirstHundredStock2016yield, \
-    FirstHundredStock2017yield, FirstHundredStock2018yield, Stockpool
+    FirstHundredStock2017yield, FirstHundredStock2018yield, tqstock
 import pandas as pd
 import json
 import datetime
 import numpy as np
 from sqlalchemy import create_engine
 from django.shortcuts import render
+from quanter import strategy
+from quanter.models import Dailydata
+from quanter import multi_back_test
 
 
 def merge_three_year_yield(request):
@@ -355,22 +358,28 @@ def index(request):
     return HttpResponse("查询数据成功.")
 
 
-def back_test(request):
-    stat_date = '2018-03-23'
-    end_date = '2018-03-25'
-    stock_id_list = ['000001']
-    three_k_strategy = ThreeKStrategy()
-    # 计算每日的收益率
-    daily_stock_yields = three_k_strategy.automatic_trade(stock_id_list)
-    return HttpResponse(json.dumps({'stock_id_list': stock_id_list}), content_type="application/json")
-
-
 def test_three_k(request):
     return render(request, 'quanter/StrategyIntroduction.html')
 
 
 def stock_charts(request):
-    return render(request, 'quanter/StockCharts.html')
+    # 获取我的自选股list
+    query_set = list(tqstock.objects.filter(isInPool=1, isChecked=1))
+    my_stock = []
+
+    for obj in query_set:
+        item = {}
+        item['code'] = obj.code
+        my_stock.append(item)
+
+    start_date = datetime.date(2016, 1, 1)
+    end_date = datetime.date(2016, 12, 31)
+    zhong_shan_gong_yong = Dailydata.objects.filter(date__range=(start_date, end_date), code='000685').values('date', 'close')
+    # zhong_shan_gong_yong.order_by('date')
+    raw_data = []
+    for day_data in zhong_shan_gong_yong:
+        raw_data.append([str(day_data['date']), 0])
+    return render(request, 'quanter/StockCharts.html', {'my_stock_list': json.dumps(my_stock), 'list': raw_data})
 
 
 def strategy_introduction(request):
@@ -378,32 +387,134 @@ def strategy_introduction(request):
 
 
 def stock_table(request):
-    context = {'res_list': Stockpool.objects.filter(isInPool=1)}
+    context = {'res_list': tqstock.objects.filter(isInPool=1)}
     return render(request, 'quanter/StockTable.html', context)
 
 
-def check_stock(request, code):
+def check_stock(request, code, operation):
     # 数据库操作，将对应股票从我的自选股中加入或删除
-    stock = Stockpool.objects.filter(code=code)[0]
-    if stock.isChecked == 0:
-        stock.isChecked = 1
-    else:
+    if operation == 1:  # 股票池中的操作
+        stock = tqstock.objects.filter(code=code)[0]
+        if stock.isChecked == 0:
+            stock.isChecked = 1
+        else:
+            stock.isChecked = 0
+        stock.save()
+        context = {'res_list': tqstock.objects.filter(isInPool=1)}
+        return render(request, 'quanter/StockTable.html', context)
+    else:  # 我的选股中的操作
+        print('我的自选股操作！')
+        stock = tqstock.objects.filter(code=code)[0]
         stock.isChecked = 0
-    stock.save()
-    context = {'res_list': Stockpool.objects.filter(isInPool=1)}
-    return render(request, 'quanter/StockTable.html', context)
+        stock.save()
+        for res in tqstock.objects.filter(isInPool=1, isChecked=1):
+            print(res.name)
+        context = {'res_list': tqstock.objects.filter(isInPool=1, isChecked=1)}
+        return render(request, 'quanter/StockMine.html', context)
 
 
 def stock_mine(request):
-    context = {'res_list': Stockpool.objects.filter(isInPool=1, isChecked=1)}
+    context = {'res_list': tqstock.objects.filter(isInPool=1, isChecked=1)}
     return render(request, 'quanter/StockMine.html', context)
 
 
-def delete_my_stock(request, code):
-    stock = Stockpool.objects.filter(code=code)[0]
-    stock.isChecked = 0
-    context = {'res_list': Stockpool.objects.filter(isInPool=1, isChecked=1)}
-    return render(request, 'quanter/StockMine.html', context)
+def back_test_one_code(request):
+    # print(request.GET.get('start'))
+    # list = []
+    # item = {'profit': 25, 'date': '2015-04-01'}
+    # list.append(item)
+    # return HttpResponse(json.dumps(list), content_type='application/json')
+
+    # 获取参数
+    code = request.GET.get('code')
+    start_date = request.GET.get('start')
+    end_date = request.GET.get('end')
+    total_money = request.GET.get('totalMoney')
+    data = strategy.test_one_stock_sell_when_large_departure(code, start_date, end_date, total_money)
+    print('data: ', data)
+    print('type(data)', type(data))
+    date_index = data.index
+    date_list = []
+    price_list = []
+    for i, x in enumerate(data):
+        date_list.append(str(date_index[i]))
+        price_list.append(x)
+    data = {
+        "index": date_list,
+        "data": price_list
+    }
+    return HttpResponse(json.dumps(data), content_type='application/json')
+    # return render(request, 'quanter/StockRegression.html', context={'profit_data': 2500, 'profit_rate': 25})
+
+
+def back_test_multi_code(request):
+    # 获取参数
+    code_to_test = request.GET.get('code').split(',')
+    print("type(code_to_test): ", type(code_to_test))
+    print('code_to_test: ', code_to_test)
+    start_date = request.GET.get('start')
+    end_date = request.GET.get('end')
+    total_money = request.GET.get('totalMoney')
+    res_df = multi_back_test.multi_test_buy_when_large_derpature(start_date, end_date, code_to_test)
+    # 需要的数据
+    date_list = []
+    asset_list = []
+    flag_list = []
+    order_code_list = []
+    order_name_list = []
+    order_hold_num_list = []
+    price_list = []
+    profit_list = []
+
+    date_index = res_df.index
+    asset_series = res_df['asset']
+    flag_series = res_df['flag']
+    order_code_series = res_df['order_code']
+    order_name_series = res_df['order_name']
+    order_hold_num_series = res_df['order_hold_num']
+    price_series = res_df['price_series']
+    profit_series = res_df['profit_series']
+    for i, x in enumerate(price_series):
+        today = date_index[i]
+        date_list.append(str(today))
+        asset_list.append(asset_series[today])
+        flag_list.append(flag_series[today])
+        order_code_list.append(order_code_series[today])
+        order_name_list.append(order_name_series[today])
+        order_hold_num_list.append(order_hold_num_series[today])
+        price_list.append(x)
+        profit_list.append(profit_series[today])
+    data = {
+        'date_list': date_list,
+        'asset_list': asset_list,
+        'flag_list': flag_list,
+        'order_code_list': order_code_list,
+        'order_name_list': order_name_list,
+        'order_hold_num_list': order_hold_num_list,
+        'price_list': price_list,
+        'profit_list': profit_list
+    }
+    return HttpResponse(json.dumps(data), content_type='application/json')
+
+
+def back_test(request):
+    # stat_date = '2018-03-23'
+    # end_date = '2018-03-25'
+    # stock_id_list = ['000001']
+    # three_k_strategy = ThreeKStrategy()
+    # # 计算每日的收益率
+    # daily_stock_yields = three_k_strategy.automatic_trade(stock_id_list)
+    # return HttpResponse(json.dumps({'stock_id_list': stock_id_list}), content_type="application/json")
+    start = "2016-01-01"
+    end = "2016-12-31"
+    code_to_test = ['000685', '000605', '000554', '000001']
+    multi_back_test.multi_test_buy_when_large_derpature(start, end, code_to_test)
+    return HttpResponse("返回数据成功")
+
+
+
+
+
 
 
 

@@ -6,7 +6,7 @@ class StockDataService(object):
 
     def get_stock_data(self, code, start_date, end_date):
         data_query_set = Dailydata.objects.filter(date__range=(start_date, end_date), code__in=[code])
-        df = pd.DataFrame(list(data_query_set.values('date', 'close')))
+        df = pd.DataFrame(list(data_query_set.values('id', 'date', 'close')))
         if len(df) == 0:
             return df
         df.set_index('date', inplace=True)

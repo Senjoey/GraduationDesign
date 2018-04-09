@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>量化交易系统—太极模块</title>
+    <title>量化交易系统—三K模块</title>
 
     <!-- BOOTSTRAP STYLES-->
     <link href="../../static/css/bootstrap.css" rel="stylesheet" />
@@ -49,7 +49,7 @@
 
 
                 <li>
-                    <a href="{% url 'stock_table' %}"><i class="fa fa-dashboard "></i>推荐股票</a>
+                    <a  href="{% url 'stock_table' %}"><i class="fa fa-dashboard "></i>推荐股票</a>
                 </li>
                 <li>
                     <a class="active-menu" href="{% url 'stock_mine' %}"><i class="fa fa-anchor "></i>我的选股</a>
@@ -98,7 +98,7 @@
                                                         <td>{{ res.code }}</td>
                                                         <td>{{ res.profit }}</td>
                                                         <td>
-                                                            <a href="{% url 'delete_my_stock' res.code %}">
+                                                            <a  href="/quanter/{{ res.code }}/{{ 0 }}">
                                                                 <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
                                                             </a>
                                                         </td>
@@ -155,6 +155,7 @@
 <script src="../../static/js/custom.js"></script>
 <script src="../../static/js/jquery-latest.js"></script>
 <script src="../../static/js/jquery.tablesorter.js"></script>
+{#<script src="../../static/js/quanter/backtest.js"></script>#}
 <script>
     $(document).ready(function()
         {

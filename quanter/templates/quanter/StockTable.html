@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>量化交易系统—太极模块</title>
+    <title>量化交易系统—三K模块</title>
 
     <!-- BOOTSTRAP STYLES-->
     <link href="../../static/css/bootstrap.css" rel="stylesheet" />
@@ -99,13 +99,13 @@
                                                     <td>{{ res.profit }}</td>
                                                     {% if res.isChecked == 1 %}
                                                         <td>
-                                                            <a href="{% url 'check_stock' res.code %}">
+                                                            <a href="/quanter/{{ res.code }}/{{ 1 }}">
                                                                 <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
                                                             </a>
                                                         </td>
                                                     {% else %}
                                                         <td>
-                                                            <a href="{% url 'check_stock' res.code %}">
+                                                            <a href="/quanter/{{ res.code }}/{{ 1 }}">
                                                                 <span class="glyphicon glyphicon-star-empty" aria-hidden="true"></span>
                                                             </a>
                                                         </td>
