@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
 from quanter.models import FirstHundredStock2014yield, FirstHundredStock2015yield, FirstHundredStock2016yield, \
-    FirstHundredStock2017yield, FirstHundredStock2018yield, tqstock
+    FirstHundredStock2017yield, FirstHundredStock2018yield, tqstock, tq_sell_when_large_departure_strategy_two
 import pandas as pd
 import json
 import datetime
@@ -62,17 +62,17 @@ def test_all_stock_sell_when_large_departure(request):
     for stock in all_stocks:
         print('处理stock: ', stock.name)
         # 获取股票的收盘价
-        start_date = datetime.date(2017, 1, 1)
-        end_date = datetime.date(2017, 12, 31)
+        start_date = datetime.date(2014, 1, 1)
+        end_date = datetime.date(2016, 12, 31)
         close_datas = data_service.get_stock_data(stock.code, start_date, end_date)
         if len(close_datas) == 0:
             stock_yield = 0
-            capital_item = {'code': stock.code, 'name': stock.name, 'yield2017': stock_yield}
+            capital_item = {'code': stock.code, 'name': stock.name, 'yield': stock_yield}
             print('处理stock: ', capital_item)
             capital_list.append(capital_item)
             continue
 
-        print('close_datas的大小: ', len(close_datas))
+        # print('close_datas的大小: ', len(close_datas))
 
         # 计算ma20
         ma20_datas = close_datas['close'].rolling(20, 1).mean()
@@ -364,7 +364,7 @@ def test_three_k(request):
 
 def stock_charts(request):
     # 获取我的自选股list
-    query_set = list(tqstock.objects.filter(isInPool=1, isChecked=1))
+    query_set = list(tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1, isChecked=1))
     my_stock = []
 
     for obj in query_set:
@@ -372,13 +372,15 @@ def stock_charts(request):
         item['code'] = obj.code
         my_stock.append(item)
 
-    start_date = datetime.date(2016, 1, 1)
-    end_date = datetime.date(2016, 12, 31)
-    zhong_shan_gong_yong = Dailydata.objects.filter(date__range=(start_date, end_date), code='000685').values('date', 'close')
+    # start_date = datetime.date(2016, 1, 1)
+    # end_date = datetime.date(2016, 1, 31)
+    # zhong_shan_gong_yong = Dailydata.objects.filter(date__range=(start_date, end_date), code='000685').values('date', 'close')
     # zhong_shan_gong_yong.order_by('date')
     raw_data = []
-    for day_data in zhong_shan_gong_yong:
-        raw_data.append([str(day_data['date']), 0])
+    # for day_data in zhong_shan_gong_yong:
+    raw_data.append(['2017-01-01', 0])
+    raw_data.append(['2017-01-02', 0])
+    raw_data.append(['2017-01-03', 0])
     return render(request, 'quanter/StockCharts.html', {'my_stock_list': json.dumps(my_stock), 'list': raw_data})
 
 
@@ -387,34 +389,36 @@ def strategy_introduction(request):
 
 
 def stock_table(request):
-    context = {'res_list': tqstock.objects.filter(isInPool=1)}
+    # context = {'res_list': tqstock.objects.filter(isInPool=1)}
+    context = {'res_list': tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1)}
     return render(request, 'quanter/StockTable.html', context)
 
 
 def check_stock(request, code, operation):
     # 数据库操作，将对应股票从我的自选股中加入或删除
     if operation == 1:  # 股票池中的操作
-        stock = tqstock.objects.filter(code=code)[0]
+        stock = tq_sell_when_large_departure_strategy_two.objects.filter(code=code)[0]
         if stock.isChecked == 0:
             stock.isChecked = 1
         else:
             stock.isChecked = 0
         stock.save()
-        context = {'res_list': tqstock.objects.filter(isInPool=1)}
+        context = {'res_list': tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1)}
         return render(request, 'quanter/StockTable.html', context)
     else:  # 我的选股中的操作
         print('我的自选股操作！')
-        stock = tqstock.objects.filter(code=code)[0]
+        stock = tq_sell_when_large_departure_strategy_two.objects.filter(code=code)[0]
         stock.isChecked = 0
         stock.save()
-        for res in tqstock.objects.filter(isInPool=1, isChecked=1):
+        for res in tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1, isChecked=1):
             print(res.name)
-        context = {'res_list': tqstock.objects.filter(isInPool=1, isChecked=1)}
+        context = {'res_list': tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1, isChecked=1)}
         return render(request, 'quanter/StockMine.html', context)
 
 
 def stock_mine(request):
-    context = {'res_list': tqstock.objects.filter(isInPool=1, isChecked=1)}
+    # context = {'res_list': tqstock.objects.filter(isInPool=1, isChecked=1)}
+    context = {'res_list': tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1, isChecked=1)}
     return render(request, 'quanter/StockMine.html', context)
 
 
@@ -455,7 +459,7 @@ def back_test_multi_code(request):
     start_date = request.GET.get('start')
     end_date = request.GET.get('end')
     total_money = request.GET.get('totalMoney')
-    res_df = multi_back_test.multi_test_buy_when_large_derpature(start_date, end_date, code_to_test)
+    res_df = multi_back_test.multi_test_sell_when_large_departure(start_date, end_date, code_to_test)
     # 需要的数据
     date_list = []
     asset_list = []

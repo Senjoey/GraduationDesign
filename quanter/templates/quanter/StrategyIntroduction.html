@@ -29,12 +29,6 @@
                 </button>
                 <a class="navbar-brand" href="index.html">Stock-Analysis</a>
             </div>
-
-            <div class="header-right">
-                <a href="#" class="btn btn-danger" title="Logout"><i class="fa fa-exclamation-circle fa-2x"></i></a>
-
-
-            </div>
         </nav>
         <!-- /. NAV TOP  -->
         <nav class="navbar-default navbar-side" role="navigation">
@@ -49,18 +43,18 @@
 
 
                     <li>
-                        <a href="stock_table"><i class="fa fa-dashboard "></i>推荐股票</a>
+                        <a href="{% url 'stock_table' %}"><i class="fa fa-dashboard "></i>推荐股票</a>
                     </li>
                     <li>
-                        <a href="stock_mine"><i class="fa fa-anchor "></i>我的选股</a>
+                        <a href="{% url 'stock_mine' %}"><i class="fa fa-anchor "></i>我的选股</a>
                     </li>
                     <li>
-                        <a href="stock_charts"><i class="fa fa-anchor "></i>回归测试</a>
+                        <a href="{% url 'stock_charts' %}"><i class="fa fa-anchor "></i>回归测试</a>
                     </li>
                     <li>
 
                     <li>
-                        <a  class="active-menu" href="strategy_introduction"><i class="fa fa-desktop "></i>策略介绍 </a>
+                        <a  class="active-menu" href="{% url 'strategy_introduction' %}"><i class="fa fa-desktop "></i>策略介绍 </a>
                     </li>
 
                 </ul>
