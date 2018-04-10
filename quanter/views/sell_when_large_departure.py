@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 # 只有回测最后一天的收益率
 def test_all_stock_sell_when_large_departure(request):
     # 利用均线趋势向下的背景里的负乖离买反弹，然后在接近向下均线的位置卖出
+    print("test_all_stock_sell_when_large_departure")
     data_service = StockDataService()
     all_stocks = tqbasicstockbool.objects.all()
     # all_stocks = pd.DataFrame(list(data_query_set.values('code', 'name')))
@@ -51,16 +52,18 @@ def test_all_stock_sell_when_large_departure(request):
                 asset = close_series[today] * hold_num
                 if is_sell_state(departure_series[today]):
                     hold_num = 0
-                # elif is_need_stopping_loss(latest_buy_close * hold_num, close_series[today] * hold_num):
-                #     asset = close_series[today] * hold_num
-                #     hold_num = 0
+                elif is_need_stopping_loss(latest_buy_close, close_series[today]):
+                    hold_num = 0
+                elif is_need_stopping_profit(latest_buy_close, close_series[today]):
+                    hold_num = 0
 
             # 需要止损也卖出 未实现
             # 需要止盈也卖出 未实现
             # 不持有股票（默认有资金？）
             # 达到买的型态买进
             else:
-                if is_buy_state(close_series[today], ma20_series_round[today],departure_series[today]):
+                if is_buy_state(close_series[today], open_series[today], close_series[yesterday], open_series[yesterday],
+                                ma20_series_round[today], departure_series[today]):
                     hold_num = asset / close_series[today]
                     latest_buy_close = close_series[today]
         stock_yield = 100 * (asset - initial_asset) / initial_asset
@@ -70,35 +73,53 @@ def test_all_stock_sell_when_large_departure(request):
     capital = pd.DataFrame(capital_list)
     # engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test4?charset=utf8')
     engine = create_engine('mysql+mysqlconnector://root:liufengnju@114.212.242.143:3306/quanter?charset=utf8')
-    table_name = 'quanter_sell_when_large_departure'
+    table_name = 'quanter_tq_sell_when_large_departure_strategy_one'
     capital.to_sql(table_name, engine, if_exists='append')
     return HttpResponse("查询数据成功.")
 
 
+# 判断是否为阴线：close<open为阴线 测试
+def is_yin_xian(close_price, open_price):
+    return close_price < open_price
+
+
+# 判断是否为阳线：close>open为阳线 测试
+def is_yang_xian(close_price, open_price):
+    return close_price > open_price
+
+
 # 是否达到买的型态: 靠近均线的位置买入
-def is_buy_state(today_close, today_ma20, departure_value):
-    if (today_close > today_ma20) & (departure_value <= 3.6) & (departure_value > 0):
+# 判断一下是不是阳上阳，阳上阳买；
+def is_buy_state(today_close, today_open, yesterday_close, yesterday_open, today_ma20, departure_value):
+    if (today_close > today_ma20) & (departure_value <= 3.6) & (departure_value > 0) & is_yang_xian(today_close, today_open) & \
+            is_yang_xian(yesterday_close, yesterday_open) & (today_close > yesterday_close):
+        # print("满足买入型态！")
         return True
     return False
 
 
 # 是否达到卖的型态：正乖离过大的位置卖出
 def is_sell_state(departure_value):
-    if departure_value > 10:
+    if departure_value >= 5:
         return True
     return False
 
 
 # 是否需要止损
-def is_need_stopping_loss(initial_asset, asset):
-    # 止损：收益达到-5%
-    profit = 100 * (asset - initial_asset) / initial_asset
-    return profit <= -0.5
+def is_need_stopping_loss(latest_close, today_close):
+    # 止损：相对买入时候跌破2%
+    if (today_close - latest_close)/latest_close <= -0.05:
+        print("需要止损！")
+        return True
+    return False
 
 
 # 是否需要止盈
-def is_need_stopping_profit():
-    pass
+def is_need_stopping_profit(latest_close, today_close):
+    if (today_close - latest_close)/latest_close >= 0.2:
+        print("需要止盈！")
+        return True
+    return False
 
 
 

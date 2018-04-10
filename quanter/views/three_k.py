@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
 from quanter.models import FirstHundredStock2014yield, FirstHundredStock2015yield, FirstHundredStock2016yield, \
-    FirstHundredStock2017yield, FirstHundredStock2018yield, tqstock, tq_sell_when_large_departure_strategy_two
+    FirstHundredStock2017yield, FirstHundredStock2018yield, tqcurrentstrategy, tq_sell_when_large_departure_strategy_one
 import pandas as pd
 import json
 import datetime
@@ -358,13 +358,25 @@ def index(request):
     return HttpResponse("查询数据成功.")
 
 
-def test_three_k(request):
+'''
+主要的几个页面
+'''
+
+
+def three_k_index(request):
     return render(request, 'quanter/StrategyIntroduction.html')
 
 
 def stock_charts(request):
+    # 查看当前strayegy
+    current_strategy = tqcurrentstrategy.objects.all()[0]
+    objs = tq_sell_when_large_departure_strategy_one.objects
+    if current_strategy.strategy_num == 2:
+        print('当前是策略二！')
+        # objs = tq_buy_when_large_departure_strategy_two.objects
+
     # 获取我的自选股list
-    query_set = list(tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1, isChecked=1))
+    query_set = list(objs.filter(isInPool=1, isChecked=1))
     my_stock = []
 
     for obj in query_set:
@@ -372,16 +384,13 @@ def stock_charts(request):
         item['code'] = obj.code
         my_stock.append(item)
 
-    # start_date = datetime.date(2016, 1, 1)
-    # end_date = datetime.date(2016, 1, 31)
-    # zhong_shan_gong_yong = Dailydata.objects.filter(date__range=(start_date, end_date), code='000685').values('date', 'close')
-    # zhong_shan_gong_yong.order_by('date')
     raw_data = []
     # for day_data in zhong_shan_gong_yong:
     raw_data.append(['2017-01-01', 0])
     raw_data.append(['2017-01-02', 0])
     raw_data.append(['2017-01-03', 0])
-    return render(request, 'quanter/StockCharts.html', {'my_stock_list': json.dumps(my_stock), 'list': raw_data})
+    return render(request, 'quanter/StockCharts.html', {'my_stock_list': json.dumps(my_stock), 'list': raw_data,
+                                                        'strategy_name': current_strategy.strategy_name})
 
 
 def strategy_introduction(request):
@@ -389,77 +398,97 @@ def strategy_introduction(request):
 
 
 def stock_table(request):
-    # context = {'res_list': tqstock.objects.filter(isInPool=1)}
-    context = {'res_list': tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1)}
+    current_strategy = tqcurrentstrategy.objects.all()[0]
+    objs = tq_sell_when_large_departure_strategy_one.objects
+    if current_strategy.strategy_num == 2:
+        print('当前是策略二！')
+        # objs = tq_buy_when_large_departure_strategy_two.objects
+
+    context = {'res_list': objs.filter(isInPool=1), 'strategy_name': current_strategy.strategy_name}
     return render(request, 'quanter/StockTable.html', context)
 
 
 def check_stock(request, code, operation):
+    current_strategy = tqcurrentstrategy.objects.all()[0]
+    objs = tq_sell_when_large_departure_strategy_one.objects
+    if current_strategy.strategy_num == 2:
+        print('当前是策略二！')
+        # objs = tq_buy_when_large_departure_strategy_two.objects
+
     # 数据库操作，将对应股票从我的自选股中加入或删除
     if operation == 1:  # 股票池中的操作
-        stock = tq_sell_when_large_departure_strategy_two.objects.filter(code=code)[0]
+        stock = objs.filter(code=code)[0]
         if stock.isChecked == 0:
             stock.isChecked = 1
         else:
             stock.isChecked = 0
         stock.save()
-        context = {'res_list': tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1)}
+        context = {'res_list': objs.filter(isInPool=1), 'strategy_name': current_strategy.strategy_name}
         return render(request, 'quanter/StockTable.html', context)
     else:  # 我的选股中的操作
         print('我的自选股操作！')
-        stock = tq_sell_when_large_departure_strategy_two.objects.filter(code=code)[0]
+        stock = objs.filter(code=code)[0]
         stock.isChecked = 0
         stock.save()
-        for res in tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1, isChecked=1):
+        for res in objs.filter(isInPool=1, isChecked=1):
             print(res.name)
-        context = {'res_list': tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1, isChecked=1)}
+        context = {'res_list': objs.filter(isInPool=1, isChecked=1), 'strategy_name': current_strategy.strategy_name}
         return render(request, 'quanter/StockMine.html', context)
 
 
 def stock_mine(request):
-    # context = {'res_list': tqstock.objects.filter(isInPool=1, isChecked=1)}
-    context = {'res_list': tq_sell_when_large_departure_strategy_two.objects.filter(isInPool=1, isChecked=1)}
+    current_strategy = tqcurrentstrategy.objects.all()[0]
+    objs = tq_sell_when_large_departure_strategy_one.objects
+    if current_strategy.strategy_num == 2:
+        print('当前是策略二！')
+        # objs = tq_buy_when_large_departure_strategy_two.objects
+
+    context = {'res_list': objs.filter(isInPool=1, isChecked=1), 'strategy_name': current_strategy.strategy_name}
     return render(request, 'quanter/StockMine.html', context)
 
 
-def back_test_one_code(request):
-    # print(request.GET.get('start'))
-    # list = []
-    # item = {'profit': 25, 'date': '2015-04-01'}
-    # list.append(item)
-    # return HttpResponse(json.dumps(list), content_type='application/json')
-
-    # 获取参数
-    code = request.GET.get('code')
-    start_date = request.GET.get('start')
-    end_date = request.GET.get('end')
-    total_money = request.GET.get('totalMoney')
-    data = strategy.test_one_stock_sell_when_large_departure(code, start_date, end_date, total_money)
-    print('data: ', data)
-    print('type(data)', type(data))
-    date_index = data.index
-    date_list = []
-    price_list = []
-    for i, x in enumerate(data):
-        date_list.append(str(date_index[i]))
-        price_list.append(x)
-    data = {
-        "index": date_list,
-        "data": price_list
-    }
-    return HttpResponse(json.dumps(data), content_type='application/json')
-    # return render(request, 'quanter/StockRegression.html', context={'profit_data': 2500, 'profit_rate': 25})
+'''
+选择策略部分
+'''
 
 
-def back_test_multi_code(request):
+def choose_strategy_one(request):
+    current_strategy = tqcurrentstrategy.objects.all()[0]
+    current_strategy.strategy_num = 1
+    current_strategy.strategy_name = '策略一'
+    current_strategy.save()
+
+    objs = tq_sell_when_large_departure_strategy_one.objects
+    context = {'res_list': objs.filter(isInPool=1),  'strategy_name': current_strategy.strategy_name}
+    return render(request, 'quanter/StockTable.html', context)
+
+    # return render(request, 'quanter/StrategyIntroduction.html')
+
+
+def choose_strategy_two(request):
+    current_strategy = tqcurrentstrategy.objects.all()[0]
+    current_strategy.strategy_num = 2
+    current_strategy.strategy_name = '策略二'
+    current_strategy.save()
+    return render(request, 'quanter/StrategyIntroduction.html')
+
+
+'''
+回测部分 
+'''
+# 利用均线趋势向上的背景买入，然后在正乖离大的位置卖出
+
+
+def back_test_multi_code_sell_when_large_departure(request):
+    print("====回测策略一：利用均线趋势向上的背景买入，然后在正乖离大的位置卖出====")
     # 获取参数
     code_to_test = request.GET.get('code').split(',')
     print("type(code_to_test): ", type(code_to_test))
     print('code_to_test: ', code_to_test)
     start_date = request.GET.get('start')
     end_date = request.GET.get('end')
-    total_money = request.GET.get('totalMoney')
-    res_df = multi_back_test.multi_test_sell_when_large_departure(start_date, end_date, code_to_test)
+    total_money = float(request.GET.get('totalMoney'))
+    res_df = multi_back_test.multi_test_sell_when_large_departure(start_date, end_date, code_to_test, total_money)
     # 需要的数据
     date_list = []
     asset_list = []
@@ -501,19 +530,58 @@ def back_test_multi_code(request):
     return HttpResponse(json.dumps(data), content_type='application/json')
 
 
-def back_test(request):
-    # stat_date = '2018-03-23'
-    # end_date = '2018-03-25'
-    # stock_id_list = ['000001']
-    # three_k_strategy = ThreeKStrategy()
-    # # 计算每日的收益率
-    # daily_stock_yields = three_k_strategy.automatic_trade(stock_id_list)
-    # return HttpResponse(json.dumps({'stock_id_list': stock_id_list}), content_type="application/json")
-    start = "2016-01-01"
-    end = "2016-12-31"
-    code_to_test = ['000685', '000605', '000554', '000001']
-    multi_back_test.multi_test_buy_when_large_derpature(start, end, code_to_test)
-    return HttpResponse("返回数据成功")
+# 利用均线趋势向下的背景里的负乖离买反弹，然后在接近向下均线的位置卖出
+def back_test_multi_code_buy_when_large_departure(request):
+    print("====回测策略一：利用均线趋势向下的背景里的负乖离买反弹，然后在接近向下均线的位置卖出====")
+    # 获取参数
+    code_to_test = request.GET.get('code').split(',')
+    print("type(code_to_test): ", type(code_to_test))
+    print('code_to_test: ', code_to_test)
+    start_date = request.GET.get('start')
+    end_date = request.GET.get('end')
+    total_money = request.GET.get('totalMoney')
+    res_df = multi_back_test.multi_test_buy_when_large_departure(start_date, end_date, code_to_test)
+    # 需要的数据
+    date_list = []
+    asset_list = []
+    flag_list = []
+    order_code_list = []
+    order_name_list = []
+    order_hold_num_list = []
+    price_list = []
+    profit_list = []
+
+    date_index = res_df.index
+    asset_series = res_df['asset']
+    flag_series = res_df['flag']
+    order_code_series = res_df['order_code']
+    order_name_series = res_df['order_name']
+    order_hold_num_series = res_df['order_hold_num']
+    price_series = res_df['price_series']
+    profit_series = res_df['profit_series']
+    for i, x in enumerate(price_series):
+        today = date_index[i]
+        date_list.append(str(today))
+        asset_list.append(asset_series[today])
+        flag_list.append(flag_series[today])
+        order_code_list.append(order_code_series[today])
+        order_name_list.append(order_name_series[today])
+        order_hold_num_list.append(order_hold_num_series[today])
+        price_list.append(x)
+        profit_list.append(profit_series[today])
+    data = {
+        'date_list': date_list,
+        'asset_list': asset_list,
+        'flag_list': flag_list,
+        'order_code_list': order_code_list,
+        'order_name_list': order_name_list,
+        'order_hold_num_list': order_hold_num_list,
+        'price_list': price_list,
+        'profit_list': profit_list
+    }
+    return HttpResponse(json.dumps(data), content_type='application/json')
+
+
 
 
 

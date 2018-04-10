@@ -8,6 +8,7 @@ from quanter.views import sell_when_large_departure, buy_when_large_departure
 
 # 测试股票池 选出三年下来收益较高的
 def multi_test_buy_when_large_departure(start, end, code_to_test):
+    print("buy_when_large_departure")
     stock_list_to_test = []
     data_service = StockDataService()
     for code in code_to_test:
@@ -16,8 +17,6 @@ def multi_test_buy_when_large_departure(start, end, code_to_test):
 
     ma_day = 20
     initial_asset = 100000.0
-    # start_date = datetime.date(year, 1, 1)
-    # end_date = datetime.date(year, 12, 31)
     start_date = datetime.datetime.strptime(start, "%Y-%m-%d").date()
     end_date = datetime.datetime.strptime(end, "%Y-%m-%d").date()
 
@@ -135,7 +134,7 @@ def multi_test_buy_when_large_departure(start, end, code_to_test):
 
 
 # 待测试 测试之后选出三年下来收益最高的
-def multi_test_sell_when_large_departure(start, end, code_to_test):
+def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
     stock_list_to_test = []
     data_service = StockDataService()
     for code in code_to_test:
@@ -143,7 +142,7 @@ def multi_test_sell_when_large_departure(start, end, code_to_test):
     hold_stock = []
 
     ma_day = 20
-    initial_asset = 100000.0
+    initial_asset = total_money
     start_date = datetime.datetime.strptime(start, "%Y-%m-%d").date()
     end_date = datetime.datetime.strptime(end, "%Y-%m-%d").date()
 
@@ -192,6 +191,7 @@ def multi_test_sell_when_large_departure(start, end, code_to_test):
     hold_num = 0.0
     asset_series = pd.Series(initial_asset, date_index)
     price_series = pd.Series(0.0, date_index)
+    latest_buy_close = 0.0
 
     for i, x in enumerate(close_series_dict[any_code]):
         if i < ma_day - 1:  # 从第20天开始
@@ -206,8 +206,9 @@ def multi_test_sell_when_large_departure(start, end, code_to_test):
             for stock in stock_list_to_test:
                 # 获取相应股票的close_series, open_series, departure_series
                 code = stock.code
-                if sell_when_large_departure.is_buy_state(close_series_dict[code][today], ma20_series_round_dict[code][today],
-                                departure_series_dict[code][today]):
+                if sell_when_large_departure.is_buy_state(close_series_dict[code][today], open_series_dict[code][today],
+                                                          close_series_dict[code][yesterday], open_series_dict[code][yesterday],
+                                                          ma20_series_round_dict[code][today],departure_series_dict[code][today]):
                     hold_stock.append(code)
                     order_code_series[today] = code
                     order_name_series[today] = stock.name
@@ -215,12 +216,15 @@ def multi_test_sell_when_large_departure(start, end, code_to_test):
                     hold_num = order_hold_num_series[today]
                     flag_series[today] = "买入"
                     price_series[today] = close_series_dict[code][today]
+                    latest_buy_close = close_series_dict[code][today]
                     print("buy!!today: ", today, ' code: ', code)
                     break
         else:  # 持有的股票不为空：
             for code in hold_stock:
                 asset = close_series_dict[code][today] * hold_num
-                if sell_when_large_departure.is_sell_state(departure_series_dict[code][today]):
+                if sell_when_large_departure.is_sell_state(departure_series_dict[code][today]) | \
+                        sell_when_large_departure.is_need_stopping_profit(latest_buy_close, close_series_dict[code][today]) | \
+                        sell_when_large_departure.is_need_stopping_loss(latest_buy_close, close_series_dict[code][today]):
                     hold_stock.remove(code)
                     flag_series[today] = "卖出"
                     order_code_series[today] = " "

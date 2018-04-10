@@ -70,7 +70,18 @@
         <div id="page-inner">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 class="page-head-line">股票池</h1>
+                    <div class="dropdown">
+{#                            <label style="font-size: 17px">选择策略：</label>#}
+                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            选择策略
+                        <span class="caret"></span>
+                        </button>
+                      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        <li><a href="{% url 'choose_strategy_one' %}">策略一</a></li>
+                        <li><a href="{% url 'choose_strategy_two' %}">策略二</a></li>
+                      </ul>
+                    </div>
+                    <h1 class="page-head-line">股票池-{{ strategy_name }}</h1>
                     <div class="row">
                         <div style="margin: 5%;">
                             <!--    Striped Rows Table  -->
@@ -146,10 +157,10 @@
 <!-- /. FOOTER  -->
 <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
 <!-- JQUERY SCRIPTS -->
-{#<script type="text/javascript">#}
-{#    var testData = {{ data|safe }};#}
-{#    alert(testData);#}
-{#</script>#}
+<script type="text/javascript">
+    var strategy_name = {{ strategy_name|safe }};
+</script>
+
 <script src="../../static/js/jquery-1.10.2.js"></script>
 <!-- BOOTSTRAP SCRIPTS -->
 <script src="../../static/js/bootstrap.js"></script>

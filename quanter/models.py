@@ -51,7 +51,13 @@ class tqbasicstockbool(models.Model):
     name = models.TextField()
 
 
-class tq_sell_when_large_departure_strategy_two(models.Model):
+class tqcurrentstrategy(models.Model):
+    id = models.IntegerField(primary_key=True)
+    strategy_num = models.IntegerField()
+    strategy_name = models.TextField()
+
+
+class tq_sell_when_large_departure_strategy_one(models.Model):
     id = models.IntegerField(primary_key=True)
     code = models.TextField()
     name = models.TextField()

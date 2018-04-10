@@ -72,7 +72,7 @@
         <div id="page-inner">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 class="page-head-line">我的选股</h1>
+                    <h1 class="page-head-line">我的选股-{{ strategy_name }}</h1>
                     <div class="row">
                         <div style="margin: 5%;">
                             <!--    Striped Rows Table  -->
@@ -146,6 +146,9 @@
 <!-- /. FOOTER  -->
 <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
 <!-- JQUERY SCRIPTS -->
+<script type="text/javascript">
+    var strategy_name = {{ strategy_name|safe }};
+</script>
 <script src="../../static/js/jquery-1.10.2.js"></script>
 <!-- BOOTSTRAP SCRIPTS -->
 <script src="../../static/js/bootstrap.js"></script>

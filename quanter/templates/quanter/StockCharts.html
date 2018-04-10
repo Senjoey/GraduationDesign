@@ -67,7 +67,7 @@
         <div id="page-inner">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 class="page-head-line">三K战法</h1>
+                    <h1 class="page-head-line">三K-{{ strategy_name }}</h1>
                     <div>
                         <div >
                         <div style="width: 25%;float: left;">
@@ -139,8 +139,9 @@
 <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
 <!-- JQUERY SCRIPTS -->
 <script type="text/javascript">
-    var myStockList={{ my_stock_list|safe }}
-    var rawData={{ list|safe }}
+    var myStockList={{ my_stock_list|safe }};
+    var rawData={{ list|safe }};
+    var strategy_name = {{ strategy_name|safe }};
     {#var profitRate_day ={{ profitRate_day|safe }}#}
     {#console.log(myStockList.length)#}
 </script>
