@@ -2,7 +2,8 @@ from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
 from quanter.models import FirstHundredStock2014yield, FirstHundredStock2015yield, FirstHundredStock2016yield, \
-    FirstHundredStock2017yield, FirstHundredStock2018yield, tqcurrentstrategy, tq_sell_when_large_departure_strategy_one
+    FirstHundredStock2017yield, FirstHundredStock2018yield, tqcurrentstrategy, tq_sell_when_large_departure_strategy_one, \
+    tq_buy_when_large_departure_strategy_two
 import pandas as pd
 import json
 import datetime
@@ -373,7 +374,7 @@ def stock_charts(request):
     objs = tq_sell_when_large_departure_strategy_one.objects
     if current_strategy.strategy_num == 2:
         print('当前是策略二！')
-        # objs = tq_buy_when_large_departure_strategy_two.objects
+        objs = tq_buy_when_large_departure_strategy_two.objects
 
     # 获取我的自选股list
     query_set = list(objs.filter(isInPool=1, isChecked=1))
@@ -401,8 +402,7 @@ def stock_table(request):
     current_strategy = tqcurrentstrategy.objects.all()[0]
     objs = tq_sell_when_large_departure_strategy_one.objects
     if current_strategy.strategy_num == 2:
-        print('当前是策略二！')
-        # objs = tq_buy_when_large_departure_strategy_two.objects
+        objs = tq_buy_when_large_departure_strategy_two.objects
 
     context = {'res_list': objs.filter(isInPool=1), 'strategy_name': current_strategy.strategy_name}
     return render(request, 'quanter/StockTable.html', context)
@@ -413,7 +413,7 @@ def check_stock(request, code, operation):
     objs = tq_sell_when_large_departure_strategy_one.objects
     if current_strategy.strategy_num == 2:
         print('当前是策略二！')
-        # objs = tq_buy_when_large_departure_strategy_two.objects
+        objs = tq_buy_when_large_departure_strategy_two.objects
 
     # 数据库操作，将对应股票从我的自选股中加入或删除
     if operation == 1:  # 股票池中的操作
@@ -440,8 +440,7 @@ def stock_mine(request):
     current_strategy = tqcurrentstrategy.objects.all()[0]
     objs = tq_sell_when_large_departure_strategy_one.objects
     if current_strategy.strategy_num == 2:
-        print('当前是策略二！')
-        # objs = tq_buy_when_large_departure_strategy_two.objects
+        objs = tq_buy_when_large_departure_strategy_two.objects
 
     context = {'res_list': objs.filter(isInPool=1, isChecked=1), 'strategy_name': current_strategy.strategy_name}
     return render(request, 'quanter/StockMine.html', context)
@@ -462,23 +461,32 @@ def choose_strategy_one(request):
     context = {'res_list': objs.filter(isInPool=1),  'strategy_name': current_strategy.strategy_name}
     return render(request, 'quanter/StockTable.html', context)
 
-    # return render(request, 'quanter/StrategyIntroduction.html')
-
 
 def choose_strategy_two(request):
     current_strategy = tqcurrentstrategy.objects.all()[0]
     current_strategy.strategy_num = 2
     current_strategy.strategy_name = '策略二'
     current_strategy.save()
-    return render(request, 'quanter/StrategyIntroduction.html')
+    objs = tq_buy_when_large_departure_strategy_two.objects
+    context = {'res_list': objs.filter(isInPool=1), 'strategy_name': current_strategy.strategy_name}
+    return render(request, 'quanter/StockTable.html', context)
 
 
 '''
 回测部分 
 '''
+
+
+def back_test_nulti_code(request):
+    print("In back_test_nulti_code")
+    current_strategy = tqcurrentstrategy.objects.all()[0]
+    if current_strategy.strategy_num == 1:
+        return back_test_multi_code_sell_when_large_departure(request)
+    else:
+        return back_test_multi_code_buy_when_large_departure(request)
+
+
 # 利用均线趋势向上的背景买入，然后在正乖离大的位置卖出
-
-
 def back_test_multi_code_sell_when_large_departure(request):
     print("====回测策略一：利用均线趋势向上的背景买入，然后在正乖离大的位置卖出====")
     # 获取参数
@@ -532,15 +540,15 @@ def back_test_multi_code_sell_when_large_departure(request):
 
 # 利用均线趋势向下的背景里的负乖离买反弹，然后在接近向下均线的位置卖出
 def back_test_multi_code_buy_when_large_departure(request):
-    print("====回测策略一：利用均线趋势向下的背景里的负乖离买反弹，然后在接近向下均线的位置卖出====")
+    print("====回测策略二：利用均线趋势向下的背景里的负乖离买反弹，然后在接近向下均线的位置卖出====")
     # 获取参数
     code_to_test = request.GET.get('code').split(',')
     print("type(code_to_test): ", type(code_to_test))
     print('code_to_test: ', code_to_test)
     start_date = request.GET.get('start')
     end_date = request.GET.get('end')
-    total_money = request.GET.get('totalMoney')
-    res_df = multi_back_test.multi_test_buy_when_large_departure(start_date, end_date, code_to_test)
+    total_money = float(request.GET.get('totalMoney'))
+    res_df = multi_back_test.multi_test_buy_when_large_departure(start_date, end_date, code_to_test, total_money)
     # 需要的数据
     date_list = []
     asset_list = []

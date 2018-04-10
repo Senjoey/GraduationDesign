@@ -18,7 +18,7 @@ function backTest() {
     alert("codetotest: "+ code_to_test);
     $.ajax({
              type: "GET",
-             url: "back_test_multi_code_sell_when_large_departure",
+             url: "back_test_nulti_code",
              data: {
                  code: code_to_test,
                  start: startDate,

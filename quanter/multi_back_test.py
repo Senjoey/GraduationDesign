@@ -7,7 +7,7 @@ from quanter.views import sell_when_large_departure, buy_when_large_departure
 
 
 # 测试股票池 选出三年下来收益较高的
-def multi_test_buy_when_large_departure(start, end, code_to_test):
+def multi_test_buy_when_large_departure(start, end, code_to_test, total_money):
     print("buy_when_large_departure")
     stock_list_to_test = []
     data_service = StockDataService()
@@ -16,7 +16,7 @@ def multi_test_buy_when_large_departure(start, end, code_to_test):
     hold_stock = []
 
     ma_day = 20
-    initial_asset = 100000.0
+    initial_asset = total_money
     start_date = datetime.datetime.strptime(start, "%Y-%m-%d").date()
     end_date = datetime.datetime.strptime(end, "%Y-%m-%d").date()
 
@@ -32,7 +32,6 @@ def multi_test_buy_when_large_departure(start, end, code_to_test):
 
         close_series = pd.Series(history_prices['close'], history_prices.index)
         close_series_dict[stock.code] = close_series
-        print("type(close_series): ", type(close_series))
 
         open_series = pd.Series(history_prices['open'], history_prices.index)
         open_series_dict[stock.code] = open_series
@@ -64,8 +63,6 @@ def multi_test_buy_when_large_departure(start, end, code_to_test):
     #     if len(close_series_dict[code].index) < len(min_date_index):
     #         min_date_index = close_series_dict[code].index
     date_index = close_series_dict[any_code].index
-    print("len(date_index): ", len(date_index))
-    print(date_index)
 
     order_code_series = pd.Series(" ", date_index)
     order_name_series = pd.Series(" ", date_index)
@@ -129,8 +126,7 @@ def multi_test_buy_when_large_departure(start, end, code_to_test):
     engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test4?charset=utf8')
     table_name = 'quanter_multibuy' + start
     res_df.to_sql(table_name, engine, if_exists='append')
-    # return res_df
-    return HttpResponse('获取数据成功！')
+    return res_df
 
 
 # 待测试 测试之后选出三年下来收益最高的
@@ -158,7 +154,6 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
 
         close_series = pd.Series(history_prices['close'], history_prices.index)
         close_series_dict[stock.code] = close_series
-        # print("type(close_series): ", type(close_series))
 
         open_series = pd.Series(history_prices['open'], history_prices.index)
         open_series_dict[stock.code] = open_series

@@ -66,6 +66,15 @@ class tq_sell_when_large_departure_strategy_one(models.Model):
     isChecked = models.IntegerField()
 
 
+class tq_buy_when_large_departure_strategy_two(models.Model):
+    id = models.IntegerField(primary_key=True)
+    code = models.TextField()
+    name = models.TextField()
+    profit = models.FloatField()
+    isInPool = models.IntegerField()
+    isChecked = models.IntegerField()
+
+
 class FirstHundredStock2014yield(models.Model):
     id = models.IntegerField(primary_key=True)
     code = models.CharField(max_length=255)

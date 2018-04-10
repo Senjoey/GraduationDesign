@@ -51,10 +51,11 @@ def test_all_stock_buy_when_large_departure(request):
                 asset = close_series[today] * hold_num
                 if is_sell_state(departure_series[today]):
                     hold_num = 0
-                # elif is_need_stopping_loss(latest_buy_close * hold_num, close_series[today] * hold_num):
-                #     asset = close_series[today] * hold_num
-                #     hold_num = 0
-
+                elif is_need_stopping_loss(latest_buy_close, close_series[today]):
+                    asset = close_series[today] * hold_num
+                    hold_num = 0
+                elif is_need_stopping_profit(latest_buy_close, close_series[today]):
+                    hold_num = 0
             # 需要止损也卖出 未实现
             # 需要止盈也卖出 未实现
             # 不持有股票（默认有资金？）
@@ -73,7 +74,7 @@ def test_all_stock_buy_when_large_departure(request):
     capital = pd.DataFrame(capital_list)
     # engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test4?charset=utf8')
     engine = create_engine('mysql+mysqlconnector://root:liufengnju@114.212.242.143:3306/quanter?charset=utf8')
-    table_name = 'quanter_tq_buy_when_large_departure_strategy_one'
+    table_name = 'quanter_tq_buy_when_large_departure_strategy_two'
     capital.to_sql(table_name, engine, if_exists='append')
     return HttpResponse("查询数据成功.")
 
@@ -195,20 +196,20 @@ def is_buy_state(today_close, today_open, yesterday_close, yesterday_open, the_d
 
 
 # 是否需要止损
-def is_need_stopping_loss(initial_asset, asset):
-    # 止损：收益达到-5%
-    profit = 100 * (asset - initial_asset) / initial_asset
-    return profit <= -0.5
+def is_need_stopping_loss(latest_close, today_close):
+    # 止损：相对买入时候跌破2%
+    if (today_close - latest_close)/latest_close <= -0.05:
+        print("需要止损！")
+        return True
+    return False
 
 
 # 是否需要止盈
-def is_need_stopping_profit():
-    pass
-
-
-def test_method():
-    # 测试阴线
-    pass
+def is_need_stopping_profit(latest_close, today_close):
+    if (today_close - latest_close)/latest_close >= 0.2:
+        print("需要止盈！")
+        return True
+    return False
 
 
 
