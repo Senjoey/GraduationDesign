@@ -16,49 +16,50 @@
     <link href="../../static/css/custom.css" rel="stylesheet" />
 
     <link rel="stylesheet" href="../../static/css/jquery.tablesorter.pager.css" type="text/css">
+    <link href="../../static/css/bootstrap-datetimepicker.css" rel="stylesheet" />
     <!-- GOOGLE FONTS-->
     <!--<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />-->
 </head>
 <body>
 <div id="wrapper">
-    <nav class="navbar navbar-default navbar-cls-top " role="navigation" style="margin-bottom: 0">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">Stock-Analysis</a>
-        </div>
-
+{#    <nav class="navbar navbar-default navbar-cls-top " role="navigation" style="margin-bottom: 0">#}
+{#        <div class="navbar-header">#}
+{#            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">#}
+{#                <span class="sr-only">Toggle navigation</span>#}
+{#                <span class="icon-bar"></span>#}
+{#                <span class="icon-bar"></span>#}
+{#                <span class="icon-bar"></span>#}
+{#            </button>#}
+{#            <a class="navbar-brand" href="#">Stock-Analysis</a>#}
+{#        </div>#}
+{##}
 {#        <div class="header-right">#}
 {#            <a href="#" class="btn btn-danger" title="Logout"><i class="fa fa-exclamation-circle fa-2x"></i></a>#}
 {#        </div>#}
-    </nav>
+{#    </nav>#}
     <!-- /. NAV TOP  -->
     <nav class="navbar-default navbar-side" role="navigation">
         <div class="sidebar-collapse">
             <ul class="nav" id="main-menu">
                 <li>
-                    <div style="margin-left:30% ">
-                        <img src="../../static/img/stock.png"/>
+                    <div style="margin:15% ">
+                        <a href="#"><h3 style="color: #ffffff">量化交易小助手</h3></a>
                     </div>
                 </li>
 
                 <li>
-                    <a class="active-menu" href="{% url 'stock_table' %}"><i class="fa fa-dashboard "></i>推荐股票</a>
+                    <a class="active-menu" href="{% url 'stock_table' %}"><span class="glyphicon glyphicon-star" aria-hidden="true"></span> 推荐股票</a>
                 </li>
                 <li>
-                    <a href="{% url 'stock_mine' %}"><i class="fa fa-anchor "></i>我的选股</a>
+                    <a href="{% url 'stock_mine' %}"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span> 我的选股</a>
                 </li>
                 <li>
-                    <a href="{% url 'stock_charts' %}"><i class="fa fa-anchor "></i>回归测试</a>
+                    <a href="{% url 'stock_charts' %}"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> 回归测试</a>
                 </li>
                 <li>
 
                 <li>
-                    <a href="{% url 'strategy_introduction' %}"><i class="fa fa-desktop "></i>策略介绍 </a>
+                    <a href="{% url 'strategy_introduction' %}"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> 策略设置</a>
                 </li>
 
             </ul>
@@ -70,18 +71,35 @@
         <div id="page-inner">
             <div class="row">
                 <div class="col-md-12">
-                    <div class="dropdown">
+{#                    <div class="dropdown">#}
 {#                            <label style="font-size: 17px">选择策略：</label>#}
-                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            选择策略
-                        <span class="caret"></span>
-                        </button>
-                      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                        <li><a href="{% url 'choose_strategy_one' %}">策略一</a></li>
-                        <li><a href="{% url 'choose_strategy_two' %}">策略二</a></li>
-                      </ul>
+{#                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">#}
+{#                            选择策略#}
+{#                        <span class="caret"></span>#}
+{#                        </button>#}
+{#                      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">#}
+{#                        <li><a href="{% url 'choose_strategy_one' %}">策略一</a></li>#}
+{#                        <li><a href="{% url 'choose_strategy_two' %}">策略二</a></li>#}
+{#                      </ul>#}
+{#                    </div>#}
+                    <h1 class="page-head-line">股票池</h1>
+                    <div >
+                        <div style="width: 25%;float: left;">
+                            <label style="float: left;">开始日期:</label>
+                            <div class="input-group" style="margin-left: 25%">
+                                <input  class="form-control" type="text" id="poolStartDate" name="poolStartDate" value="{{ pool_date.start_date }}"/>
+                            </div>
+                        </div>
+                        <div  style="width: 25%;float: left;">
+                            <label style="float: left;">结束日期:</label>
+                            <div class="input-group"  style="margin-left: 25%">
+                            <input  class="form-control" type="text" id="poolEndDate" name="poolEndDate" value="{{ pool_date.end_date }}"/>
+                            </div>
+                        </div>
+                        <a>
+                            <button class="btn btn-primary" style="float: left;margin-left: 5%" onclick="changeFilterTime()">重新筛选</button>
+                        </a>
                     </div>
-                    <h1 class="page-head-line">股票池-{{ strategy_name }}</h1>
                     <div class="row">
                         <div style="margin: 5%;">
                             <!--    Striped Rows Table  -->
@@ -111,13 +129,13 @@
                                                     {% if res.isChecked == 1 %}
                                                         <td>
                                                             <a href="/quanter/{{ res.code }}/{{ 1 }}">
-                                                                <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                                                                <span class="glyphicon glyphicon-heart" aria-hidden="true"></span>
                                                             </a>
                                                         </td>
                                                     {% else %}
                                                         <td>
                                                             <a href="/quanter/{{ res.code }}/{{ 1 }}">
-                                                                <span class="glyphicon glyphicon-star-empty" aria-hidden="true"></span>
+                                                                <span class="glyphicon glyphicon-heart-empty" aria-hidden="true"></span>
                                                             </a>
                                                         </td>
                                                     {% endif %}
@@ -157,9 +175,6 @@
 <!-- /. FOOTER  -->
 <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
 <!-- JQUERY SCRIPTS -->
-<script type="text/javascript">
-    var strategy_name = {{ strategy_name|safe }};
-</script>
 
 <script src="../../static/js/jquery-1.10.2.js"></script>
 <!-- BOOTSTRAP SCRIPTS -->
@@ -170,14 +185,27 @@
 {#<script src="../../static/js/custom.js"></script>#}
 {#<script src="../../static/js/jquery-latest.js"></script>#}
 <script src="../../static/js/jquery.tablesorter.js"></script>
+<script src="../../static/js/bootstrap-datetimepicker.js"></script>
 <script type="text/javascript" src="../../static/js/bootstrap-paginator.js"></script>
 <script type="text/javascript" src="../../static/js/jquery.tablesorter.pager.js"></script>
+<script src="../../static/js/quanter/stockpool.js"></script>
 {#<script type="text/javascript" src="../../static/js/quanter/table.js"></script>#}
 <script>
     $(document).ready(function()
         {
             $("#table").tablesorter();
         });
+</script>
+<script type="text/javascript">
+    $("#poolStartDate").datetimepicker({
+        minView : 2,
+        format: 'yyyy-mm-dd'
+    });
+    $("#poolEndDate").datetimepicker({
+        minView : 2,
+        format: 'yyyy-mm-dd',
+        todayBtn : true
+    });
 </script>
 <!--<script type="text/javascript">-->
     <!--$(function(){-->

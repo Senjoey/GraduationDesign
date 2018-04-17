@@ -2,16 +2,13 @@ from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
 from quanter.models import FirstHundredStock2014yield, FirstHundredStock2015yield, FirstHundredStock2016yield, \
-    FirstHundredStock2017yield, FirstHundredStock2018yield, tqcurrentstrategy, tq_sell_when_large_departure_strategy_one, \
-    tq_buy_when_large_departure_strategy_two
+    FirstHundredStock2017yield, FirstHundredStock2018yield, TqSellWhenLargeDepartureStrategyOne, TqPoolDate, Stock
 import pandas as pd
 import json
 import datetime
 import numpy as np
 from sqlalchemy import create_engine
 from django.shortcuts import render
-from quanter import strategy
-from quanter.models import Dailydata
 from quanter import multi_back_test
 
 
@@ -370,11 +367,11 @@ def three_k_index(request):
 
 def stock_charts(request):
     # 查看当前strayegy
-    current_strategy = tqcurrentstrategy.objects.all()[0]
-    objs = tq_sell_when_large_departure_strategy_one.objects
-    if current_strategy.strategy_num == 2:
-        print('当前是策略二！')
-        objs = tq_buy_when_large_departure_strategy_two.objects
+    # current_strategy = tqcurrentstrategy.objects.all()[0]
+    objs = TqSellWhenLargeDepartureStrategyOne.objects
+    # if current_strategy.strategy_num == 2:
+    #     print('当前是策略二！')
+    #     objs = tq_buy_when_large_departure_strategy_two.objects
 
     # 获取我的自选股list
     query_set = list(objs.filter(isInPool=1, isChecked=1))
@@ -390,8 +387,7 @@ def stock_charts(request):
     raw_data.append(['2017-01-01', 0])
     raw_data.append(['2017-01-02', 0])
     raw_data.append(['2017-01-03', 0])
-    return render(request, 'quanter/StockCharts.html', {'my_stock_list': json.dumps(my_stock), 'list': raw_data,
-                                                        'strategy_name': current_strategy.strategy_name})
+    return render(request, 'quanter/StockCharts.html', {'my_stock_list': json.dumps(my_stock), 'list': raw_data})
 
 
 def strategy_introduction(request):
@@ -399,21 +395,18 @@ def strategy_introduction(request):
 
 
 def stock_table(request):
-    current_strategy = tqcurrentstrategy.objects.all()[0]
-    objs = tq_sell_when_large_departure_strategy_one.objects
-    if current_strategy.strategy_num == 2:
-        objs = tq_buy_when_large_departure_strategy_two.objects
-
-    context = {'res_list': objs.filter(isInPool=1), 'strategy_name': current_strategy.strategy_name}
+    objs = TqSellWhenLargeDepartureStrategyOne.objects
+    pool_date_objs = TqPoolDate.objects
+    context = {'res_list': objs.filter(isInPool=1), 'pool_date': pool_date_objs.all()[0]}
     return render(request, 'quanter/StockTable.html', context)
 
 
 def check_stock(request, code, operation):
-    current_strategy = tqcurrentstrategy.objects.all()[0]
-    objs = tq_sell_when_large_departure_strategy_one.objects
-    if current_strategy.strategy_num == 2:
-        print('当前是策略二！')
-        objs = tq_buy_when_large_departure_strategy_two.objects
+    # current_strategy = tqcurrentstrategy.objects.all()[0]
+    objs = TqSellWhenLargeDepartureStrategyOne.objects
+    # if current_strategy.strategy_num == 2:
+    #     print('当前是策略二！')
+    #     objs = tq_buy_when_large_departure_strategy_two.objects
 
     # 数据库操作，将对应股票从我的自选股中加入或删除
     if operation == 1:  # 股票池中的操作
@@ -423,26 +416,87 @@ def check_stock(request, code, operation):
         else:
             stock.isChecked = 0
         stock.save()
-        context = {'res_list': objs.filter(isInPool=1), 'strategy_name': current_strategy.strategy_name}
+        context = {'res_list': objs.filter(isInPool=1)}
         return render(request, 'quanter/StockTable.html', context)
     else:  # 我的选股中的操作
-        print('我的自选股操作！')
         stock = objs.filter(code=code)[0]
-        stock.isChecked = 0
-        stock.save()
-        for res in objs.filter(isInPool=1, isChecked=1):
-            print(res.name)
-        context = {'res_list': objs.filter(isInPool=1, isChecked=1), 'strategy_name': current_strategy.strategy_name}
+        if stock.isInPool == 0:  # 删除该股票
+            stock.delete()
+        else:
+            stock.isChecked = 0
+            stock.save()
+        context = {'res_list': objs.filter(isChecked=1)}
         return render(request, 'quanter/StockMine.html', context)
 
 
 def stock_mine(request):
-    current_strategy = tqcurrentstrategy.objects.all()[0]
-    objs = tq_sell_when_large_departure_strategy_one.objects
-    if current_strategy.strategy_num == 2:
-        objs = tq_buy_when_large_departure_strategy_two.objects
+    # current_strategy = tqcurrentstrategy.objects.all()[0]
+    objs = TqSellWhenLargeDepartureStrategyOne.objects
+    # if current_strategy.strategy_num == 2:
+    #     objs = tq_buy_when_large_departure_strategy_two.objects
 
-    context = {'res_list': objs.filter(isInPool=1, isChecked=1), 'strategy_name': current_strategy.strategy_name}
+    context = {'res_list': objs.filter(isChecked=1)}
+    return render(request, 'quanter/StockMine.html', context)
+
+
+'''
+修改股票池筛选时间
+'''
+
+
+def change_filter_time(request):
+    start_date = request.GET.get('start')
+    end_date = request.GET.get('end')
+    filter_date = TqPoolDate.objects.all()[0]
+    filter_date.start_date = start_date
+    filter_date.end_date = end_date
+    filter_date.save()
+
+    # 重新运行策略选股，选取排名前30的股票，且年化收益率大于10%
+    objs = TqSellWhenLargeDepartureStrategyOne.objects
+    context = {'res_list': objs.filter(isInPool=1), 'pool_date': filter_date}
+    return render(request, 'quanter/StockTable.html', context)
+
+
+'''
+添加自选股
+'''
+
+
+def check_database(request):
+    code = request.GET.get('code')
+    stock_query_set = Stock.objects.filter(code=code)
+    my_stock_query_set = TqSellWhenLargeDepartureStrategyOne.objects.filter(isChecked=1, code=code)
+    is_in_stock = 1
+    is_already_in_my_stock = 0
+    if len(stock_query_set) == 0:
+        is_in_stock = 0
+    if len(my_stock_query_set) > 0:
+        is_already_in_my_stock = 1
+    res = {
+        'is_in_stock': is_in_stock,
+        'is_already_in_my_stock': is_already_in_my_stock
+    }
+    return HttpResponse(json.dumps(res), content_type='application/json')
+
+
+def add_my_stock(request):
+    code = request.GET.get('code')
+    # 先看是否在股票池中
+    pool_query_set = TqSellWhenLargeDepartureStrategyOne.objects.filter(code=code)
+    # 在股票池中，直接修改股票池
+    if len(pool_query_set) > 0:
+        stock = pool_query_set[0]
+        stock.isChecked = 1
+        stock.save()
+    # 不在股票池中，加一条数据到股票池
+    else:
+        stock_query_set = Stock.objects.filter(code=code)
+        name = stock_query_set[0].name
+        profit = 0.0  # 调用策略进行回测，算出筛选股票池期间的收益
+        new_stock = TqSellWhenLargeDepartureStrategyOne(code=code, name=name, profit=profit, isInPool=0, isChecked=1)
+        new_stock.save()
+    context = {'res_list': TqSellWhenLargeDepartureStrategyOne.objects.filter(isChecked=1)}
     return render(request, 'quanter/StockMine.html', context)
 
 
@@ -451,25 +505,25 @@ def stock_mine(request):
 '''
 
 
-def choose_strategy_one(request):
-    current_strategy = tqcurrentstrategy.objects.all()[0]
-    current_strategy.strategy_num = 1
-    current_strategy.strategy_name = '策略一'
-    current_strategy.save()
-
-    objs = tq_sell_when_large_departure_strategy_one.objects
-    context = {'res_list': objs.filter(isInPool=1),  'strategy_name': current_strategy.strategy_name}
-    return render(request, 'quanter/StockTable.html', context)
-
-
-def choose_strategy_two(request):
-    current_strategy = tqcurrentstrategy.objects.all()[0]
-    current_strategy.strategy_num = 2
-    current_strategy.strategy_name = '策略二'
-    current_strategy.save()
-    objs = tq_buy_when_large_departure_strategy_two.objects
-    context = {'res_list': objs.filter(isInPool=1), 'strategy_name': current_strategy.strategy_name}
-    return render(request, 'quanter/StockTable.html', context)
+# def choose_strategy_one(request):
+#     current_strategy = tqcurrentstrategy.objects.all()[0]
+#     current_strategy.strategy_num = 1
+#     current_strategy.strategy_name = '策略一'
+#     current_strategy.save()
+#
+#     objs = tq_sell_when_large_departure_strategy_one.objects
+#     context = {'res_list': objs.filter(isInPool=1),  'strategy_name': current_strategy.strategy_name}
+#     return render(request, 'quanter/StockTable.html', context)
+#
+#
+# def choose_strategy_two(request):
+#     current_strategy = tqcurrentstrategy.objects.all()[0]
+#     current_strategy.strategy_num = 2
+#     current_strategy.strategy_name = '策略二'
+#     current_strategy.save()
+#     objs = tq_buy_when_large_departure_strategy_two.objects
+#     context = {'res_list': objs.filter(isInPool=1), 'strategy_name': current_strategy.strategy_name}
+#     return render(request, 'quanter/StockTable.html', context)
 
 
 '''
@@ -478,12 +532,13 @@ def choose_strategy_two(request):
 
 
 def back_test_nulti_code(request):
-    print("In back_test_nulti_code")
-    current_strategy = tqcurrentstrategy.objects.all()[0]
-    if current_strategy.strategy_num == 1:
-        return back_test_multi_code_sell_when_large_departure(request)
-    else:
-        return back_test_multi_code_buy_when_large_departure(request)
+    return back_test_multi_code_sell_when_large_departure(request)
+    # print("In back_test_nulti_code")
+    # current_strategy = tqcurrentstrategy.objects.all()[0]
+    # if current_strategy.strategy_num == 1:
+    #     return back_test_multi_code_sell_when_large_departure(request)
+    # else:
+    #     return back_test_multi_code_buy_when_large_departure(request)
 
 
 # 利用均线趋势向上的背景买入，然后在正乖离大的位置卖出

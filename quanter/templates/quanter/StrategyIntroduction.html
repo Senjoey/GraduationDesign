@@ -19,42 +19,28 @@
 </head>
 <body>
     <div id="wrapper">
-        <nav class="navbar navbar-default navbar-cls-top " role="navigation" style="margin-bottom: 0">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="index.html">Stock-Analysis</a>
-            </div>
-        </nav>
         <!-- /. NAV TOP  -->
         <nav class="navbar-default navbar-side" role="navigation">
             <div class="sidebar-collapse">
                 <ul class="nav" id="main-menu">
                     <li>
-                        <div style="margin-left:30% ">
-                            <img src="../../static/img/stock.png"/>
-                        </div>
-
+                        <div style="margin:15% ">
+                        <a href="#"><h3 style="color: #ffffff">量化交易小助手</h3></a>
+                    </div>
                     </li>
 
 
                     <li>
-                        <a href="{% url 'stock_table' %}"><i class="fa fa-dashboard "></i>推荐股票</a>
+                        <a href="{% url 'stock_table' %}"><span class="glyphicon glyphicon-star" aria-hidden="true"></span> 推荐股票</a>
                     </li>
                     <li>
-                        <a href="{% url 'stock_mine' %}"><i class="fa fa-anchor "></i>我的选股</a>
+                        <a href="{% url 'stock_mine' %}"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span> 我的选股</a>
                     </li>
                     <li>
-                        <a href="{% url 'stock_charts' %}"><i class="fa fa-anchor "></i>回归测试</a>
+                        <a href="{% url 'stock_charts' %}"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> 回归测试</a>
                     </li>
                     <li>
-
-                    <li>
-                        <a  class="active-menu" href="{% url 'strategy_introduction' %}"><i class="fa fa-desktop "></i>策略介绍 </a>
+                        <a  class="active-menu" href="{% url 'strategy_introduction' %}"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> 策略设置</a>
                     </li>
 
                 </ul>
@@ -66,7 +52,7 @@
             <div id="page-inner">
                 <div class="row">
                     <div class="col-md-12">
-                        <h1 class="page-head-line">策略介绍</h1>
+                        <h1 class="page-head-line">策略设置</h1>
                         <h3>策略一</h3>
                         <p>
                             均线趋势向上的背景下买进，在正乖离过大的位置卖出

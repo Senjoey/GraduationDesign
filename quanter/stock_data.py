@@ -1,4 +1,4 @@
-from quanter.models import Dailydata, Ma, Stock, Mystock
+from quanter.models import Dailydata, Ma, Stock
 import pandas as pd
 
 
@@ -36,7 +36,5 @@ class StockDataService(object):
     def get_stock_by_code(self, code):
         return Stock.objects.filter(code=code)
 
-    def get_mystock_by_code(self, code):
-        return Mystock.objects.filter(code=code)
 
 

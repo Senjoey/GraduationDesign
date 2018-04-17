@@ -14,53 +14,36 @@
     <link href="../../static/css/basic.css" rel="stylesheet" />
     <!--CUSTOM MAIN STYLES-->
     <link href="../../static/css/custom.css" rel="stylesheet" />
-
+    <link href="../../static/css/validform.css">
     <!-- GOOGLE FONTS-->
     <!--<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />-->
 </head>
 <body>
 <div id="wrapper">
-    <nav class="navbar navbar-default navbar-cls-top " role="navigation" style="margin-bottom: 0">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="index.html">Stock-Analysis</a>
-        </div>
-
-{#        <div class="header-right">#}
-{#            <a href="#" class="btn btn-danger" title="Logout"><i class="fa fa-exclamation-circle fa-2x"></i></a>#}
-{##}
-{##}
-{#        </div>#}
-    </nav>
     <!-- /. NAV TOP  -->
     <nav class="navbar-default navbar-side" role="navigation">
         <div class="sidebar-collapse">
             <ul class="nav" id="main-menu">
                 <li>
-                    <div style="margin-left:30% ">
-                        <img src="../../static/img/stock.png"/>
+                    <div style="margin:15% ">
+                        <a href="#"><h3 style="color: #ffffff">量化交易小助手</h3></a>
                     </div>
                 </li>
 
 
                 <li>
-                    <a  href="{% url 'stock_table' %}"><i class="fa fa-dashboard "></i>推荐股票</a>
+                    <a  href="{% url 'stock_table' %}"><span class="glyphicon glyphicon-star" aria-hidden="true"></span> 推荐股票</a>
                 </li>
                 <li>
-                    <a class="active-menu" href="{% url 'stock_mine' %}"><i class="fa fa-anchor "></i>我的选股</a>
+                    <a class="active-menu" href="{% url 'stock_mine' %}"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span> 我的选股</a>
                 </li>
                 <li>
-                    <a  href="{% url 'stock_charts' %}"><i class="fa fa-anchor "></i>回归测试</a>
+                    <a  href="{% url 'stock_charts' %}"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> 回归测试</a>
                 </li>
                 <li>
 
                 <li>
-                    <a href="{% url 'strategy_introduction' %}"><i class="fa fa-desktop "></i>策略介绍 </a>
+                    <a href="{% url 'strategy_introduction' %}"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> 策略设置</a>
                 </li>
 
             </ul>
@@ -72,7 +55,19 @@
         <div id="page-inner">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 class="page-head-line">我的选股-{{ strategy_name }}</h1>
+                    <h1 class="page-head-line">我的选股</h1>
+                    <div>
+                        <div style="width: 25%;float: left;">
+                            <label style="float: left;">股票代码:</label>
+                            <div class="input-group" style="margin-left: 25%">
+                                <input  class="form-control" type="text" id="stockCode" name="stockCode"/>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="addMyStock()" style="float: left">
+                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>添加自选股
+                        </button>
+                    </div>
+
                     <div class="row">
                         <div style="margin: 5%;">
                             <!--    Striped Rows Table  -->
@@ -99,7 +94,7 @@
                                                         <td>{{ res.profit }}</td>
                                                         <td>
                                                             <a  href="/quanter/{{ res.code }}/{{ 0 }}">
-                                                                <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                                                                <span class="glyphicon glyphicon-heart" aria-hidden="true"></span>
                                                             </a>
                                                         </td>
                                                     </tr>
@@ -146,9 +141,9 @@
 <!-- /. FOOTER  -->
 <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
 <!-- JQUERY SCRIPTS -->
-<script type="text/javascript">
-    var strategy_name = {{ strategy_name|safe }};
-</script>
+{#<script type="text/javascript">#}
+{#    var strategy_name = {{ strategy_name|safe }};#}
+{#</script>#}
 <script src="../../static/js/jquery-1.10.2.js"></script>
 <!-- BOOTSTRAP SCRIPTS -->
 <script src="../../static/js/bootstrap.js"></script>
@@ -159,10 +154,23 @@
 <script src="../../static/js/jquery-latest.js"></script>
 <script src="../../static/js/jquery.tablesorter.js"></script>
 {#<script src="../../static/js/quanter/backtest.js"></script>#}
+<script type="text/javascript" src="../../static/js/Validform_v5.3.2_min.js"></script>
+<script src="../../static/js/quanter/addMyStock.js"></script>
 <script>
     $(document).ready(function()
         {
             $("#table").tablesorter();
+            $(".registerform").Validform({
+		    tiptype:function(msg,o,cssctl){
+			    //msg：提示信息;
+			    //o:{obj:*,type:*,curform:*}, obj指向的是当前验证的表单元素（或表单对象），type指示提示的状态，值为1、2、3、4， 1：正在检测/提交数据，2：通过验证，3：验证失败，4：提示ignore状态, curform为当前form对象;
+			    //cssctl:内置的提示信息样式控制函数，该函数需传入两个参数：显示提示信息的对象 和 当前提示的状态（既形参o中的type）;
+			    if(!o.obj.is("form")){//验证表单元素时o.obj为该表单元素，全部验证通过提交表单时o.obj为该表单对象;
+				    var objtip=o.obj.siblings(".Validform_checktip");
+				    cssctl(objtip,o.type);
+				    objtip.text(msg);
+			    }
+		    }});
         }
     );
 </script>

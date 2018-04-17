@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from quanter.stock_data import StockDataService
-from quanter.models import tqbasicstockbool
+from quanter.models import TqBasicStockBool
 import pandas as pd
 import datetime
 from sqlalchemy import create_engine
@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 def test_all_stock_buy_when_large_departure(request):
     # 利用均线趋势向下的背景里的负乖离买反弹，然后在接近向下均线的位置卖出
     data_service = StockDataService()
-    all_stocks = tqbasicstockbool.objects.all()
+    all_stocks = TqBasicStockBool.objects.all()
     # all_stocks = pd.DataFrame(list(data_query_set.values('code', 'name')))
 
     capital_list = []

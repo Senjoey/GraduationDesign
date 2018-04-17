@@ -29,14 +29,14 @@ class Ma(models.Model):
     close = models.FloatField()
 
 
-class Mystock(models.Model):
+class MyStock(models.Model):
     id = models.IntegerField(max_length=11, primary_key=True)
     code = models.TextField(max_length=255)
     name = models.TextField()
     c_name = models.TextField()
 
 
-class tqstock(models.Model):
+class TqStock(models.Model):
     id = models.IntegerField(primary_key=True)
     code = models.TextField()
     name = models.TextField()
@@ -45,19 +45,13 @@ class tqstock(models.Model):
     isChecked = models.IntegerField()
 
 
-class tqbasicstockbool(models.Model):
+class TqBasicStockBool(models.Model):
     id = models.IntegerField(primary_key=True)
     code = models.TextField()
     name = models.TextField()
 
 
-class tqcurrentstrategy(models.Model):
-    id = models.IntegerField(primary_key=True)
-    strategy_num = models.IntegerField()
-    strategy_name = models.TextField()
-
-
-class tq_sell_when_large_departure_strategy_one(models.Model):
+class TqSellWhenLargeDepartureStrategyOne(models.Model):
     id = models.IntegerField(primary_key=True)
     code = models.TextField()
     name = models.TextField()
@@ -66,13 +60,19 @@ class tq_sell_when_large_departure_strategy_one(models.Model):
     isChecked = models.IntegerField()
 
 
-class tq_buy_when_large_departure_strategy_two(models.Model):
+class TqBuyWhenLargeDepartureStrategyTwo(models.Model):
     id = models.IntegerField(primary_key=True)
     code = models.TextField()
     name = models.TextField()
     profit = models.FloatField()
     isInPool = models.IntegerField()
     isChecked = models.IntegerField()
+
+
+class TqPoolDate(models.Model):
+    id = models.IntegerField(primary_key=True)
+    start_date = models.TextField()
+    end_date = models.TextField()
 
 
 class FirstHundredStock2014yield(models.Model):

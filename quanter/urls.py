@@ -14,8 +14,15 @@ urlpatterns = [
     path('stock_mine',  three_k.stock_mine, name='stock_mine'),
 
     # 选择策略
-    path('choose_strategy_one', three_k.choose_strategy_one, name="choose_strategy_one"),
-    path('choose_strategy_two', three_k.choose_strategy_two, name="choose_strategy_two"),
+    # path('choose_strategy_one', three_k.choose_strategy_one, name="choose_strategy_one"),
+    # path('choose_strategy_two', three_k.choose_strategy_two, name="choose_strategy_two"),
+
+    # 修改股票池筛选时间
+    path('change_filter_time', three_k.change_filter_time, name='change_filter_time'),
+
+    # 添加自选股
+    path('check_database', three_k.check_database, name='check_database'),
+    path('add_my_stock', three_k.add_my_stock, name='add_my_stock'),
 
     # 回测
     path('back_test_nulti_code', three_k.back_test_nulti_code, name="back_test_nulti_code"),
