@@ -1,0 +1,7 @@
+.readonly  input{
+	border: none;
+}
+
+.point_icon {
+	cursor: pointer;
+}

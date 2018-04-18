@@ -24,6 +24,9 @@ urlpatterns = [
     path('check_database', three_k.check_database, name='check_database'),
     path('add_my_stock', three_k.add_my_stock, name='add_my_stock'),
 
+    # 策略设置
+    path('strategy_setting', three_k.strategy_setting, name="strategy_setting"),
+
     # 回测
     path('back_test_nulti_code', three_k.back_test_nulti_code, name="back_test_nulti_code"),
     path('back_test_multi_code_sell_when_large_departure', three_k.back_test_multi_code_sell_when_large_departure, name="back_test_multi_code_sell_when_large_departure"),

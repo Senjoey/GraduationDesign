@@ -14,6 +14,7 @@
     <link href="../../static/css/basic.css" rel="stylesheet" />
     <!--CUSTOM MAIN STYLES-->
     <link href="../../static/css/custom.css" rel="stylesheet" />
+    <link href="../../static/css/mycss.css" rel="stylesheet" />
     <!-- GOOGLE FONTS-->
     <!--<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />-->
 </head>
@@ -53,16 +54,45 @@
                 <div class="row">
                     <div class="col-md-12">
                         <h1 class="page-head-line">策略设置</h1>
-                        <h3>策略一</h3>
+                        <h3>策略描述</h3>
                         <p>
                             均线趋势向上的背景下买进，在正乖离过大的位置卖出
                         </p>
-                        <br />
-                        <br />
-                        <h3>策略二</h3>
                         <p>
-                            利用均线趋势向下的背景里的负乖离买反弹，然后在接近向下均线的位置卖出
+                            利用均线趋势向下的背景里的负乖离买反弹，在接近向下均线的位置卖出
                         </p>
+                        <br />
+                        <h3 style="display: inline-block">策略设置</h3>
+                        <span class="glyphicon glyphicon-pencil point_icon" aria-hidden="true" onclick="toEdit()" id="negativeDepartureEditBtn" style="margin-left: 5px"></span>
+                        <div>
+                            <div class="readonly" id="positiveDepartureDiv">
+                                <label for="positiveDeparture">正乖离: </label>
+                                <input type="text" readonly id= "positiveDeparture" value="{{ setting.positive_departure }}" style="width: 70px"/>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="readonly" id="negativeDepartureDiv">
+                                <label for="negativeDeparture">负乖离: </label>
+                                <input id="negativeDeparture" readonly style="width: 70px" value="{{ setting.negative_departure }}" />
+{#                                <span class="glyphicon glyphicon-pencil point_icon" aria-hidden="true" onclick="toEdit()" id="negativeDepartureEditBtn"></span>#}
+                                <div id="negativeDepartureOperationBtns" style="display: inline-block; visibility: hidden">
+                                    <span class="glyphicon glyphicon-ok point_icon" aria-hidden="true" id="negativeDepartureSaveBtn" onclick="toSave()"></span>
+                                    <span class="glyphicon glyphicon-remove point_icon" aria-hidden="true" id="negativeDepartureCancelBtn" onclick="toCancel()"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="readonly" id="stopProfitDiv">
+                                <label for="positiveDeparture">止  盈: </label>
+                                <input type="text" readonly id= "stopProfit" value="{{ setting.stop_profit }}" style="width: 70px;margin-left: 10px"/>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="readonly" id="stopLossDiv">
+                                <label for="positiveDeparture">止  损: </label>
+                                <input type="text" readonly id= "stopLoss" value="{{ setting.stop_loss }}" style="width: 70px; margin-left: 10px"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!-- /. ROW  -->
@@ -88,6 +118,7 @@
     <!-- /. FOOTER  -->
     <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
     <!-- JQUERY SCRIPTS -->
+
     <script src="../../static/js/jquery-1.10.2.js"></script>
     <!-- BOOTSTRAP SCRIPTS -->
     <script src="../../static/js/bootstrap.js"></script>
@@ -95,7 +126,7 @@
     <script src="../../static/js/jquery.metisMenu.js"></script>
     <!-- CUSTOM SCRIPTS -->
     <script src="../../static/js/custom.js"></script>
-
+    <script src="../../static/js/quanter/strategysetting.js"></script>
 
 </body>
 </html>

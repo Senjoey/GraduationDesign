@@ -75,6 +75,14 @@ class TqPoolDate(models.Model):
     end_date = models.TextField()
 
 
+class TqStrategySetting(models.Model):
+    id = models.IntegerField(primary_key=True)
+    negative_departure = models.FloatField()
+    positive_departure = models.FloatField()
+    stop_profit = models.FloatField()
+    stop_loss = models.FloatField()
+
+
 class FirstHundredStock2014yield(models.Model):
     id = models.IntegerField(primary_key=True)
     code = models.CharField(max_length=255)
