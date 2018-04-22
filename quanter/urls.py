@@ -1,6 +1,6 @@
 from django.urls import path
 
-from quanter.views import three_k, buy_when_large_departure, sell_when_large_departure
+from quanter.views import three_k, buy_when_large_departure, sell_when_large_departure, pointtest
 from quanter import stock_pool
 
 urlpatterns = [
@@ -37,6 +37,9 @@ urlpatterns = [
     path('test_all_stock_sell_when_large_departure', sell_when_large_departure.test_all_stock_sell_when_large_departure, name='test_all_stock_sell_when_large_departure'),
     path('test_all_stock_buy_when_large_departure', buy_when_large_departure.test_all_stock_buy_when_large_departure, name='test_all_stock_buy_when_large_departure'),
 
+    # 测试Point One
+    path('test_one_point', pointtest.test_one_point, name="test_one_point"),
+    path('test_two_point', pointtest.test_two_point, name="test_two_point"),
 ]
 
 
