@@ -41,6 +41,7 @@ urlpatterns = [
     path('test_one_point', pointtest.test_one_point, name="test_one_point"),
     path('test_two_point', pointtest.test_two_point, name="test_two_point"),
     path('test_modify', three_k.test_modify, name="test_modify"),
+    path('test_key_modify', three_k.test_key_modify, name="test_key_modify"),
     path('merge_three_year_yield', three_k.merge_three_year_yield, name="merge_three_year_yield"),
 ]
 

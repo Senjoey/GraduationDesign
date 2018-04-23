@@ -688,7 +688,7 @@ def test_modify(request):
     profit_list_2014 = []
     code_list = []
     for stock in stocks:
-        profit = multi_back_test.multi_test_sell_when_large_departure("2014-01-01", "2014-12-31", [stock.code], 100000.0, '2014')
+        profit = multi_back_test.one_test_sell_when_large_departure("2014-01-01", "2014-12-31", [stock.code], 100000.0, '2014')
         print(profit)
         if profit is None:
             continue
@@ -701,6 +701,11 @@ def test_modify(request):
         profit_list_2014 = []
         code_list = []
         # profit_list_2014 = []
+    return HttpResponse("Success!")
+
+
+def test_key_modify(request):
+    multi_back_test.multi_test_sell_when_large_departure("2014-01-01", "2014-12-31", ['000001', '000002'], 1000000.0)
     return HttpResponse("Success!")
 
 
