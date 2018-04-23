@@ -77,22 +77,22 @@ WSGI_APPLICATION = 'Quantitative_trading.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',  # 或者使用 mysql.connector.django
-        'NAME': 'quanter',
-        'USER': 'root',
-        'PASSWORD': 'liufengnju',
-        'HOST': '114.212.242.143',
-        'PORT': '3306',
-    }
     # 'default': {
     #     'ENGINE': 'django.db.backends.mysql',  # 或者使用 mysql.connector.django
-    #     'NAME': 'test4',
+    #     'NAME': 'quanter',
     #     'USER': 'root',
-    #     'PASSWORD': 'tanxiaoqiong',
-    #     'HOST': '127.0.0.1',
+    #     'PASSWORD': 'liufengnju',
+    #     'HOST': '114.212.242.143',
     #     'PORT': '3306',
     # }
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',  # 或者使用 mysql.connector.django
+        'NAME': 'test3',
+        'USER': 'root',
+        'PASSWORD': 'tanxiaoqiong',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+    }
 }
 
 

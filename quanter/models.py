@@ -83,37 +83,38 @@ class TqStrategySetting(models.Model):
     stop_loss = models.FloatField()
 
 
-class FirstHundredStock2014yield(models.Model):
+class FilterStock2014(models.Model):
     id = models.IntegerField(primary_key=True)
-    code = models.CharField(max_length=255)
-    name = models.CharField(max_length=255)
-    yield2014 = models.FloatField()
+    code = models.CharField(max_length=11)
+    # name = models.CharField(max_length=11)
+    profit2014 = models.FloatField()
 
 
-class FirstHundredStock2015yield(models.Model):
+class FilterStock2015(models.Model):
     id = models.IntegerField(primary_key=True)
-    code = models.CharField(max_length=255)
-    name = models.CharField(max_length=255)
-    yield2015 = models.FloatField()
+    code = models.CharField(max_length=11)
+    # name = models.CharField(max_length=11)
+    profit2015 = models.FloatField()
 
 
-class FirstHundredStock2016yield(models.Model):
+class FilterStock2016(models.Model):
     id = models.IntegerField(primary_key=True)
-    code = models.CharField(max_length=255)
-    name = models.CharField(max_length=255)
-    yield2016 = models.FloatField()
+    code = models.CharField(max_length=11)
+    # name = models.CharField(max_length=11)
+    profit2016 = models.FloatField()
 
 
-class FirstHundredStock2017yield(models.Model):
+class FilterStock2017(models.Model):
     id = models.IntegerField(primary_key=True)
-    code = models.CharField(max_length=255)
-    name = models.CharField(max_length=255)
-    yield2017 = models.FloatField()
+    code = models.CharField(max_length=11)
+    # name = models.CharField(max_length=11)
+    profit2017 = models.FloatField()
 
 
 class FirstHundredStock2018yield(models.Model):
     id = models.IntegerField(primary_key=True)
     code = models.CharField(max_length=255)
-    name = models.CharField(max_length=255)
+    # name = models.CharField(max_length=255)
     yield2018 = models.FloatField()
+
 

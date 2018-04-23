@@ -1,8 +1,8 @@
 from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
-from quanter.models import FirstHundredStock2014yield, FirstHundredStock2015yield, FirstHundredStock2016yield, \
-    FirstHundredStock2017yield, FirstHundredStock2018yield, TqSellWhenLargeDepartureStrategyOne, TqPoolDate, Stock, TqStrategySetting
+from quanter.models import FilterStock2014, FilterStock2015, FilterStock2016, \
+    FilterStock2017, FirstHundredStock2018yield, TqSellWhenLargeDepartureStrategyOne, TqPoolDate, Stock, TqStrategySetting
 import pandas as pd
 import json
 import datetime
@@ -14,39 +14,51 @@ from quanter import multi_back_test
 
 def merge_three_year_yield(request):
     # 分别读取三年的收益率数据
-    data_query_set = FirstHundredStock2014yield.objects.all()
-    stock_2014_yield = pd.DataFrame(list(data_query_set.values('id', 'code', 'name', 'yield2014')))
-    stock_2014_yield.set_index('id', inplace=True)
-    stock_2014_yield.sort_index()
+    all_stocks = Stock.objects.all()
+    data_query_set2014 = FilterStock2014.objects.all()
+    data_query_set2015 = FilterStock2015.objects.all()
+    data_query_set2016 = FilterStock2016.objects.all()
+    data_query_set2017 = FilterStock2017.objects.all()
+    code_list = []
+    name_list = []
+    profit2014_list = []
+    profit2015_list = []
+    profit2016_list = []
+    profit2017_list = []
 
-    data_query_set = FirstHundredStock2015yield.objects.all()
-    stock_2015_yield = pd.DataFrame(list(data_query_set.values('id', 'code', 'yield2015')))
-    stock_2015_yield.set_index('id', inplace=True)
-    stock_2015_yield.sort_index()
+    for stock in all_stocks:
+        code = stock.code
+        code_list.append(code)
+        name_list.append(stock.name)
+        profit2014 = 0
+        items = data_query_set2014.filter(code=code)
+        if len(items) != 0:
+            profit2014 = items[0].profit2014
+        profit2014_list.append(profit2014)
 
-    data_query_set = FirstHundredStock2016yield.objects.all()
-    stock_2016_yield = pd.DataFrame(list(data_query_set.values('id', 'code', 'yield2016')))
-    stock_2016_yield.set_index('id', inplace=True)
-    stock_2016_yield.sort_index()
+        profit2015 = 0
+        items = data_query_set2015.filter(code=code)
+        if len(items) != 0:
+            profit2015 = items[0].profit2015
+        profit2015_list.append(profit2015)
 
-    data_query_set = FirstHundredStock2017yield.objects.all()
-    stock_2017_yield = pd.DataFrame(list(data_query_set.values('id', 'code', 'yield2017')))
-    stock_2017_yield.set_index('id', inplace=True)
-    stock_2017_yield.sort_index()
+        profit2016 = 0
+        items = data_query_set2016.filter(code=code)
+        if len(items) != 0:
+            profit2016 = items[0].profit2016
+        profit2016_list.append(profit2016)
 
-    data_query_set = FirstHundredStock2018yield.objects.all()
-    stock_2018_yield = pd.DataFrame(list(data_query_set.values('id', 'code', 'yield2018')))
-    stock_2018_yield.set_index('id', inplace=True)
-    stock_2018_yield.sort_index()
-    # 构造合并数据的Dataframe
-    three_year_yield = stock_2014_yield
-    three_year_yield['yield2015'] = stock_2015_yield['yield2015']
-    three_year_yield['yield2016'] = stock_2016_yield['yield2016']
-    three_year_yield['yield2017'] = stock_2017_yield['yield2017']
-    three_year_yield['yield2018'] = stock_2018_yield['yield2018']
+        profit2017 = 0
+        items = data_query_set2017.filter(code=code)
+        if len(items) != 0:
+            profit2017 = items[0].profit2017
+        profit2017_list.append(profit2017)
+
     # 将数据写入数据库
-    engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test2?charset=utf8')
-    three_year_yield.to_sql('quanter_FirstHundredStockYield', engine, if_exists='append')
+    res_df = pd.DataFrame(data={"code": code_list, "name": name_list, "profit2014": profit2014_list, "profit2015": profit2015_list,
+                                "profit2016": profit2016_list, "profit2017": profit2017_list})
+    engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test3?charset=utf8')
+    res_df.to_sql('quanter_stockprofit', engine, if_exists='append')
     return HttpResponse("合并数据成功.")
 
 
@@ -668,6 +680,32 @@ def back_test_multi_code_buy_when_large_departure(request):
         'profit_list': profit_list
     }
     return HttpResponse(json.dumps(data), content_type='application/json')
+
+
+def test_modify(request):
+    # multi_back_test.multi_test_sell_when_large_departure("2014-01-01", "2014-12-31", ["000001"], 100000.0)
+    stocks = Stock.objects.all()
+    profit_list_2014 = []
+    code_list = []
+    for stock in stocks:
+        profit = multi_back_test.multi_test_sell_when_large_departure("2014-01-01", "2014-12-31", [stock.code], 100000.0, '2014')
+        print(profit)
+        if profit is None:
+            continue
+        profit_list_2014.append(profit['2014profit'])
+        code_list.append(profit['code'])
+        res_2014 = pd.DataFrame(data={"code": code_list, "profit2014": profit_list_2014})
+        engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test3?charset=utf8')
+        table_name = 'quanter_filterstockpool2014'
+        res_2014.to_sql(table_name, engine, if_exists='append')
+        profit_list_2014 = []
+        code_list = []
+        # profit_list_2014 = []
+    return HttpResponse("Success!")
+
+
+
+
 
 
 

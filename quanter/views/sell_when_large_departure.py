@@ -17,11 +17,11 @@ def test_all_stock_sell_when_large_departure(request):
 
     for stock in all_stocks:
         print('处理stock: ', stock.name)
-        # year = 2015
+        year = 2014
         ma_day = 20
         initial_asset = 100000.0
-        start_date = datetime.date(2014, 1, 1)
-        end_date = datetime.date(2014, 12, 31)
+        start_date = datetime.date(year, 1, 1)
+        end_date = datetime.date(year, 12, 31)
         history_prices = data_service.get_stock_data_by_code(stock.code, start_date, end_date)
         # 获取股票的收盘价、收盘价，产生序列close_series、open_series
         close_series = pd.Series(history_prices['close'], history_prices.index)
@@ -71,7 +71,6 @@ def test_all_stock_sell_when_large_departure(request):
         capital_list.append(capital_item)
     capital = pd.DataFrame(capital_list)
     engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test4?charset=utf8')
-    # engine = create_engine('mysql+mysqlconnector://root:liufengnju@114.212.242.143:3306/quanter?charset=utf8')
     table_name = 'quanter_tq_sell_when_large_departure_strategy_one'
     capital.to_sql(table_name, engine, if_exists='append')
     return HttpResponse("查询数据成功.")
