@@ -31,6 +31,20 @@ class StockProfit(models.Model):
     profit2017 = models.FloatField()
 
 
+# 回测结果
+class BackTest(models.Model):
+    id = models.IntegerField(max_length=20, primary_key=True)
+    date = models.DateField()
+    asset = models.FloatField()
+    flag = models.TextField()
+    left_money = models.FloatField()
+    order_code = models.TextField()
+    order_hold_num = models.FloatField()
+    order_name = models.TextField()
+    price_series = models.FloatField()
+    profit_series = models.FloatField()
+
+
 # test2数据库
 class Ma(models.Model):
     date = models.DateField()

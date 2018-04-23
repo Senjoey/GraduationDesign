@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
 from quanter.models import FilterStock2014, FilterStock2015, FilterStock2016, \
-    FilterStock2017, TqSellWhenLargeDepartureStrategyOne, TqPoolDate, Stock, TqStrategySetting, StockProfit
+    FilterStock2017, TqSellWhenLargeDepartureStrategyOne, TqPoolDate, Stock, TqStrategySetting, StockProfit, BackTest
 import pandas as pd
 import json
 import datetime
@@ -381,11 +381,7 @@ def three_k_index(request):
 
 def stock_charts(request):
     # 查看当前strayegy
-    # current_strategy = tqcurrentstrategy.objects.all()[0]
     objs = TqSellWhenLargeDepartureStrategyOne.objects
-    # if current_strategy.strategy_num == 2:
-    #     print('当前是策略二！')
-    #     objs = tq_buy_when_large_departure_strategy_two.objects
 
     # 获取我的自选股list
     query_set = list(objs.filter(isInPool=1, isChecked=1))
@@ -397,11 +393,26 @@ def stock_charts(request):
         my_stock.append(item)
 
     raw_data = []
-    # for day_data in zhong_shan_gong_yong:
-    raw_data.append(['2017-01-01', 0])
-    raw_data.append(['2017-01-02', 0])
-    raw_data.append(['2017-01-03', 0])
-    return render(request, 'quanter/StockCharts.html', {'my_stock_list': json.dumps(my_stock), 'list': raw_data})
+    back_test_res = BackTest.objects.all()
+    back_test_start_date = str(back_test_res[0].date)
+    back_test_end_date = str(back_test_res[len(back_test_res)-1].date)
+    initial_money = back_test_res[0].left_money
+    for test in back_test_res:
+        raw_data.append([str(test.date), test.profit_series])
+    return render(request, 'quanter/StockCharts.html', {'my_stock_list': json.dumps(my_stock), 'list': raw_data,
+                                                        'back_test_start_date': back_test_start_date,
+                                                        'back_test_end_date': back_test_end_date,
+                                                        'initial_money': initial_money})
+
+
+def back_test_table(request):
+    back_test_res = BackTest.objects.all()
+    back_test_start_date = str(back_test_res[0].date)
+    back_test_end_date = str(back_test_res[len(back_test_res) - 1].date)
+    initial_money = back_test_res[0].left_money
+    context = {'res_list': back_test_res, 'back_test_start_date': back_test_start_date,
+               'back_test_end_date': back_test_end_date, 'initial_money': initial_money}
+    return render(request, "quanter/BackTestTable.html", context)
 
 
 def strategy_introduction(request):
@@ -600,22 +611,9 @@ def strategy_setting(request):
 '''
 
 
-def back_test_nulti_code(request):
-    return back_test_multi_code_sell_when_large_departure(request)
-    # print("In back_test_nulti_code")
-    # current_strategy = tqcurrentstrategy.objects.all()[0]
-    # if current_strategy.strategy_num == 1:
-    #     return back_test_multi_code_sell_when_large_departure(request)
-    # else:
-    #     return back_test_multi_code_buy_when_large_departure(request)
-
-
-# 利用均线趋势向上的背景买入，然后在正乖离大的位置卖出
-def back_test_multi_code_sell_when_large_departure(request):
-    print("====回测策略一：利用均线趋势向上的背景买入，然后在正乖离大的位置卖出====")
+def back_test_multi_code(request):
     # 获取参数
     code_to_test = request.GET.get('code').split(',')
-    print("type(code_to_test): ", type(code_to_test))
     print('code_to_test: ', code_to_test)
     start_date = request.GET.get('start')
     end_date = request.GET.get('end')
@@ -630,6 +628,7 @@ def back_test_multi_code_sell_when_large_departure(request):
     order_hold_num_list = []
     price_list = []
     profit_list = []
+    left_money_list = []
 
     date_index = res_df.index
     asset_series = res_df['asset']
@@ -639,6 +638,7 @@ def back_test_multi_code_sell_when_large_departure(request):
     order_hold_num_series = res_df['order_hold_num']
     price_series = res_df['price_series']
     profit_series = res_df['profit_series']
+    left_money_series = res_df['left_money']
     for i, x in enumerate(price_series):
         today = date_index[i]
         date_list.append(str(today))
@@ -649,6 +649,7 @@ def back_test_multi_code_sell_when_large_departure(request):
         order_hold_num_list.append(order_hold_num_series[today])
         price_list.append(x)
         profit_list.append(profit_series[today])
+        left_money_list.append(left_money_series[today])
     data = {
         'date_list': date_list,
         'asset_list': asset_list,
@@ -657,7 +658,8 @@ def back_test_multi_code_sell_when_large_departure(request):
         'order_name_list': order_name_list,
         'order_hold_num_list': order_hold_num_list,
         'price_list': price_list,
-        'profit_list': profit_list
+        'profit_list': profit_list,
+        'left_money_list': left_money_list
     }
     return HttpResponse(json.dumps(data), content_type='application/json')
 

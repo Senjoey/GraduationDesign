@@ -4,7 +4,7 @@ import pandas as pd
 import datetime
 from sqlalchemy import create_engine
 from quanter.views import sell_when_large_departure, buy_when_large_departure
-from quanter.models import Stock, Dailydata
+from quanter.models import Stock, Dailydata, BackTest
 
 
 # 测试股票池 选出三年下来收益较高的
@@ -292,14 +292,6 @@ def one_test_sell_when_large_departure(start, end, code_to_test, total_money, ye
         profit_series[today] = 100 * (asset + left_money - initial_asset) / initial_asset
     profit = 100 * (asset + left_money - initial_asset) / initial_asset
     print("profit: ", profit)
-    # data = {'order_code': order_code_series, 'order_name': order_name_series, 'profit_series': profit_series,
-    #         'order_hold_num': order_hold_num_series, 'flag': flag_series, 'asset': asset_series, 'left_money': left_money_series,'price_series': price_series}
-    # res_df = pd.DataFrame(data=data, index=date_index)
-    # engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test3?charset=utf8')
-    # table_name = 'quanter_filterstockpool' + year_str
-    # res_df.to_sql(table_name, engine, if_exists='append')
-    # return res_df
-
     return {'code': code_to_test[0], year_str+'profit': profit}
 
 
@@ -325,7 +317,6 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
     # 获取大盘在回测区间数据
     hs300_history_prices = data_service.get_stock_data_by_code("399300", start_date, end_date)
     df1 = pd.DataFrame(list(Dailydata.objects.filter(code="399300", date__range=[start_date, end_date]).values("date")))
-    print("len hs300: ", len(hs300_history_prices))
 
     for stock in stock_list_to_test:
         history_prices = Dailydata.objects.filter(code=stock.code, date__range=[start_date, end_date])
@@ -333,7 +324,7 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
             continue
         df2 = pd.DataFrame(list(history_prices.values("date", "open", "close")))
         df = pd.merge(df1, df2, how="left", on="date")
-        df.set_index('date')
+        df.set_index('date', inplace=True)
         df.sort_index()
         df.fillna(0, inplace=True)
         stock_list.append(stock)
@@ -344,12 +335,8 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
         open_series = pd.Series(df['open'], df.index)
         open_series_dict[stock.code] = open_series
 
-        ma20 = df2['close'].rolling(ma_day, 1).mean()
-        ma20_round = ma20.round(3)
-        ma20_df = pd.DataFrame(data={"ma20": ma20_round, "date": df2["date"]})
-        ma20_res_df = pd.merge(df1, ma20_df, how="left", on="date")
-        ma20_res_df.fillna(0, inplace=True)
-        ma20_round_series = pd.Series(ma20_res_df['ma20'], df.index)
+        ma20 = close_series.rolling(ma_day, 1).mean()
+        ma20_round_series = ma20.round(3)
         ma20_series_round_dict[stock.code] = ma20_round_series
 
         departure = ((close_series - ma20_round_series) / ma20_round_series) * 100
@@ -513,11 +500,13 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
         profit_series[today] = 100 * (asset + left_money - initial_asset) / initial_asset
     profit = 100 * (asset + left_money - initial_asset) / initial_asset
     print("profit: ", profit)
-    data = {'order_code': order_code_series, 'order_name': order_name_series, 'profit_series': profit_series,
-            'order_hold_num': order_hold_num_series, 'flag': flag_series, 'asset': asset_series, 'left_money': left_money_series,'price_series': price_series}
+    data = {'order_code': order_code_series, 'order_name': order_name_series, 'profit_series': profit_series.round(3),
+            'order_hold_num': order_hold_num_series, 'flag': flag_series, 'asset': asset_series.round(3),
+            'left_money': left_money_series.round(3), 'price_series': price_series}
     res_df = pd.DataFrame(data=data, index=date_index)
     engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test3?charset=utf8')
     table_name = 'quanter_backtest'
+    BackTest.objects.all().delete()
     res_df.to_sql(table_name, engine, if_exists='append')
     return res_df
 

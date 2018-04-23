@@ -14,11 +14,9 @@
     <link href="../../static/css/basic.css" rel="stylesheet" />
     <!--CUSTOM MAIN STYLES-->
     <link href="../../static/css/custom.css" rel="stylesheet" />
-
-    <link rel="stylesheet" href="../../static/css/jquery.tablesorter.pager.css" type="text/css">
-    <link href="../../static/css/bootstrap-datetimepicker.css" rel="stylesheet" />
     <!-- GOOGLE FONTS-->
     <!--<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />-->
+    <link href="../../static/css/bootstrap-datetimepicker.css" rel="stylesheet" />
 </head>
 <body>
 <div id="wrapper">
@@ -32,8 +30,9 @@
                     </div>
                 </li>
 
+
                 <li>
-                    <a class="active-menu" href="{% url 'stock_table' %}"><span class="glyphicon glyphicon-star" aria-hidden="true"></span> 推荐股票</a>
+                    <a href="{% url 'stock_table' %}"><span class="glyphicon glyphicon-star" aria-hidden="true"></span> 推荐股票</a>
                 </li>
                 <li>
                     <a href="{% url 'stock_mine' %}"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span> 我的选股</a>
@@ -42,7 +41,7 @@
                     <a href="{% url 'stock_charts' %}"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> 回归测试</a>
                 </li>
                 <li>
-                    <a href="{% url 'back_test_table' %}"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> 测试结果</a>
+                    <a class="active-menu" href="{% url 'back_test_table' %}"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> 测试结果</a>
                 </li>
                 <li>
                     <a href="{% url 'strategy_introduction' %}"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> 策略设置</a>
@@ -57,40 +56,53 @@
         <div id="page-inner">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 class="page-head-line">股票池</h1>
-                    <div >
+                    <h1 class="page-head-line">测试结果</h1>
+                    <div>
+                        <div >
                         <div style="width: 25%;float: left;">
                             <label style="float: left;">开始日期:</label>
                             <div class="input-group" style="margin-left: 25%">
-                                <input  class="form-control yearpicker" type="text" id="poolStartDate" name="poolStartDate" value="{{ pool_date.start_date }}"/>
+                            <input  class="form-control" readonly type="text" id="testStartDate" name="startDate" value="{{ back_test_start_date }}"/>
                             </div>
                         </div>
                         <div  style="width: 25%;float: left;">
                             <label style="float: left;">结束日期:</label>
                             <div class="input-group"  style="margin-left: 25%">
-                            <input  class="form-control" type="text" id="poolEndDate" name="poolEndDate" value="{{ pool_date.end_date }}"/>
+                            <input  class="form-control" readonly type="text" id="testEndDate" name="endDate" value="{{ back_test_end_date }}"/>
                             </div>
                         </div>
-                        <a>
-                            <button class="btn btn-primary" style="float: left;margin-left: 5%" onclick="changeFilterTime()">重新筛选</button>
-                        </a>
+                        <div  style="width: 25%;float: left;">
+                            <label style="float: left;margin-top: 0.5%">资金数额:</label>
+                            <div class="input-group"  style="margin-left: 25%">
+                                <span class="input-group-addon">￥</span>
+                                <input type="text"  readonly aria-label="Amount (to the nearest yuan)" id="totalMoney" value="{{ initial_money }}"/>
+                            </div>
+                        </div>
+                        </div>
+                        <br/>
                     </div>
+
                     <div class="row">
                         <div style="margin: 5%;">
                             <!--    Striped Rows Table  -->
                             <div class="panel panel-default">
                                 <div class="panel-heading">
-                                    股票列表
+                                    回测结果
                                 </div>
                                 <div class="panel-body">
                                     <div class="table-responsive">
                                         <table  id="table" class="table table-striped">
                                             <thead>
                                             <tr>
+                                                <th>交易日期</th>
+                                                <th>账户余额</th>
+                                                <th>股票单价</th>
                                                 <th>股票名称</th>
                                                 <th>股票代码</th>
-                                                <th>年收益率%</th>
-                                                <th>加入选股</th>
+                                                <th>股票金额</th>
+                                                <th>持有数量</th>
+                                                <th>操作</th>
+                                                <th>收益率%</th>
                                             </tr>
                                             </thead>
 
@@ -98,22 +110,15 @@
 
                                             {% for res in res_list %}
                                                 <tr>
-                                                    <td>{{ res.name }}</td>
-                                                    <td>{{ res.code }}</td>
-                                                    <td>{{ res.profit }}</td>
-                                                    {% if res.isChecked == 1 %}
-                                                        <td>
-                                                            <a href="/quanter/{{ res.code }}/{{ 1 }}">
-                                                                <span class="glyphicon glyphicon-heart" aria-hidden="true"></span>
-                                                            </a>
-                                                        </td>
-                                                    {% else %}
-                                                        <td>
-                                                            <a href="/quanter/{{ res.code }}/{{ 1 }}">
-                                                                <span class="glyphicon glyphicon-heart-empty" aria-hidden="true"></span>
-                                                            </a>
-                                                        </td>
-                                                    {% endif %}
+                                                    <td>{{ res.date }}</td>
+                                                    <td>{{ res.left_money }}</td>
+                                                    <td>{{ res.price_series }}</td>
+                                                    <td>{{ res.order_name }}</td>
+                                                    <td>{{ res.order_code }}</td>
+                                                    <td>{{ res.asset }}</td>
+                                                    <td>{{ res.order_hold_num }}</td>
+                                                    <td>{{ res.flag }}</td>
+                                                    <td>{{ res.profit_series }}</td>
                                                 </tr>
                                             {% endfor %}
 
@@ -127,14 +132,11 @@
                     </div>
                 </div>
             </div>
+        </div>
             <!-- /. ROW  -->
             <div class="row">
                 <div class="col-md-12">
-                    <!--<div class="alert alert-info">-->
-                    <!--This is a free responsive admin under cc3.0 license, so you can use it for personal and commercial use.-->
-                    <!--<br />-->
-                    <!--Enjoy this admin and for more please keep looking <a href="http://#/" target="_blank">www.cssmoban.com</a>-->
-                    <!--</div>-->
+
                 </div>
             </div>
 
@@ -154,37 +156,27 @@
 <script src="../../static/js/jquery-1.10.2.js"></script>
 <!-- BOOTSTRAP SCRIPTS -->
 <script src="../../static/js/bootstrap.js"></script>
+
+<script src="../../static/js/bootstrap-datetimepicker.js"></script>
 <!-- METISMENU SCRIPTS -->
 <script src="../../static/js/jquery.metisMenu.js"></script>
 <!-- CUSTOM SCRIPTS -->
-<script src="../../static/js/jquery.tablesorter.js"></script>
-<script src="../../static/js/bootstrap-datetimepicker.js"></script>
-<script type="text/javascript" src="../../static/js/bootstrap-paginator.js"></script>
-<script type="text/javascript" src="../../static/js/jquery.tablesorter.pager.js"></script>
-<script src="../../static/js/quanter/stockpool.js"></script>
-<script>
-    $(document).ready(function()
-        {
-            $("#table").tablesorter();
-        });
-</script>
+{#<script src="../../static/js/custom.js"></script>#}
+<script src="../../static/js/echarts.js"></script>
+<script src="../../static/js/quanter/backtest.js"></script>
+
 <script type="text/javascript">
-    $("#poolStartDate").datetimepicker({
-        startView: 'decade',
-        minView : 'decade',
-        format: 'yyyy',
-        maxViewMode: 2,
-        minViewMode: 2,
-        autoclose: true
+    $("#testStartDate").datetimepicker({
+        minView : 2,
+        format: 'yyyy-mm-dd'
     });
-    $("#poolEndDate").datetimepicker({
-        startView: 'decade',
-        minView : 'decade',
-        format: 'yyyy',
-        maxViewMode: 2,
-        minViewMode: 2,
-        autoclose: true
+    $("#testEndDate").datetimepicker({
+        minView : 2,
+        format: 'yyyy-mm-dd',
+        todayBtn : true
     });
 </script>
+
+
 </body>
 </html>
