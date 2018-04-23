@@ -87,7 +87,7 @@
                         <div style="width: 25%;float: left;">
                             <label style="float: left;">开始日期:</label>
                             <div class="input-group" style="margin-left: 25%">
-                                <input  class="form-control" type="text" id="poolStartDate" name="poolStartDate" value="{{ pool_date.start_date }}"/>
+                                <input  class="form-control yearpicker" type="text" id="poolStartDate" name="poolStartDate" value="{{ pool_date.start_date }}"/>
                             </div>
                         </div>
                         <div  style="width: 25%;float: left;">
@@ -182,14 +182,11 @@
 <!-- METISMENU SCRIPTS -->
 <script src="../../static/js/jquery.metisMenu.js"></script>
 <!-- CUSTOM SCRIPTS -->
-{#<script src="../../static/js/custom.js"></script>#}
-{#<script src="../../static/js/jquery-latest.js"></script>#}
 <script src="../../static/js/jquery.tablesorter.js"></script>
 <script src="../../static/js/bootstrap-datetimepicker.js"></script>
 <script type="text/javascript" src="../../static/js/bootstrap-paginator.js"></script>
 <script type="text/javascript" src="../../static/js/jquery.tablesorter.pager.js"></script>
 <script src="../../static/js/quanter/stockpool.js"></script>
-{#<script type="text/javascript" src="../../static/js/quanter/table.js"></script>#}
 <script>
     $(document).ready(function()
         {
@@ -198,35 +195,21 @@
 </script>
 <script type="text/javascript">
     $("#poolStartDate").datetimepicker({
-        minView : 2,
-        format: 'yyyy-mm-dd'
+        startView: 'decade',
+        minView : 'decade',
+        format: 'yyyy',
+        maxViewMode: 2,
+        minViewMode: 2,
+        autoclose: true
     });
     $("#poolEndDate").datetimepicker({
-        minView : 2,
-        format: 'yyyy-mm-dd',
-        todayBtn : true
+        startView: 'decade',
+        minView : 'decade',
+        format: 'yyyy',
+        maxViewMode: 2,
+        minViewMode: 2,
+        autoclose: true
     });
 </script>
-<!--<script type="text/javascript">-->
-    <!--$(function(){-->
-        <!--var options={-->
-            <!--bootstrapMajorVersion:1,    //版本-->
-            <!--currentPage:1,    //当前页数-->
-            <!--numberOfPages:5,    //最多显示Page页-->
-            <!--totalPages:10,    //所有数据可以显示的页数-->
-            <!--onPageClicked:function(e,originalEvent,type,page){-->
-                <!--console.log("e");-->
-                <!--console.log(e);-->
-                <!--console.log("originalEvent");-->
-                <!--console.log(originalEvent);-->
-                <!--console.log("type");-->
-                <!--console.log(type);-->
-                <!--console.log("page");-->
-                <!--console.log(page);-->
-            <!--}-->
-        <!--}-->
-        <!--$("#page").bootstrapPaginator(options);-->
-    <!--})-->
-<!--</script>-->
 </body>
 </html>

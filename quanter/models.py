@@ -20,6 +20,17 @@ class Dailydata(models.Model):
     code = models.CharField(max_length=50)
 
 
+# 自定义筛选股票的区间
+class StockProfit(models.Model):
+    id = models.IntegerField(max_length=20, primary_key=True)
+    code = models.TextField()
+    name = models.TextField()
+    profit2014 = models.FloatField()
+    profit2015 = models.FloatField()
+    profit2016 = models.FloatField()
+    profit2017 = models.FloatField()
+
+
 # test2数据库
 class Ma(models.Model):
     date = models.DateField()

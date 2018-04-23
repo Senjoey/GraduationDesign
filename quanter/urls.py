@@ -13,10 +13,6 @@ urlpatterns = [
     path('<str:code>/<int:operation>', three_k.check_stock, name='check_stock'),
     path('stock_mine',  three_k.stock_mine, name='stock_mine'),
 
-    # 选择策略
-    # path('choose_strategy_one', three_k.choose_strategy_one, name="choose_strategy_one"),
-    # path('choose_strategy_two', three_k.choose_strategy_two, name="choose_strategy_two"),
-
     # 修改股票池筛选时间
     path('change_filter_time', three_k.change_filter_time, name='change_filter_time'),
 

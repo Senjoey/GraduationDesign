@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
 from quanter.models import FilterStock2014, FilterStock2015, FilterStock2016, \
-    FilterStock2017, FirstHundredStock2018yield, TqSellWhenLargeDepartureStrategyOne, TqPoolDate, Stock, TqStrategySetting
+    FilterStock2017, TqSellWhenLargeDepartureStrategyOne, TqPoolDate, Stock, TqStrategySetting, StockProfit
 import pandas as pd
 import json
 import datetime
@@ -461,15 +461,47 @@ def stock_mine(request):
 
 
 def change_filter_time(request):
-    start_date = request.GET.get('start')
-    end_date = request.GET.get('end')
+    start_year = request.GET.get('start')
+    end_year = request.GET.get('end')
     filter_date = TqPoolDate.objects.all()[0]
-    filter_date.start_date = start_date
-    filter_date.end_date = end_date
+    filter_date.start_date = start_year
+    filter_date.end_date = end_year
     filter_date.save()
 
-    # 重新运行策略选股，选取排名前30的股票，且年化收益率大于10%
+    # 选取平均收益率排名前30的股票，且平均收益率大于10%
+    year_list = []
+    start = int(start_year)
+    end = int(end_year)
+    while start <= end:
+        year_list.append("profit"+str(start))
+        start += 1
+    stock_profit_query_set = StockProfit.objects.all().values('code', 'name', 'profit2014', 'profit2015', 'profit2016', 'profit2017')
+    stock_profit_df = pd.DataFrame(list(stock_profit_query_set))
+    stock_profit_df.set_index('code', inplace=True)
+    stock_profit_df.sort_index()
+    profit_series = pd.Series(0.0, index=stock_profit_df.index)
+    for profit_str in year_list:
+        profit_series = profit_series + stock_profit_df[profit_str]
+    profit_series = profit_series / len(year_list)
+    stock_profit_df['avg_profit'] = profit_series
+
+    sorted_stock_profit_df = stock_profit_df.sort_values("avg_profit", ascending=False)[0:30]  # 基于它排序过滤
+    sorted_above_ten_avf_profit_df = sorted_stock_profit_df[sorted_stock_profit_df.avg_profit > 10]  # 过滤的结果
+    is_in_pool_series = pd.Series(1, sorted_above_ten_avf_profit_df.index)
+    is_checked_series = pd.Series(0, sorted_above_ten_avf_profit_df.index)
+    res_df = pd.DataFrame(data={'name': sorted_above_ten_avf_profit_df['name'],
+                                'profit': sorted_above_ten_avf_profit_df['avg_profit'],
+                                'isInPool': is_in_pool_series,
+                                'isChecked': is_checked_series}, index=sorted_above_ten_avf_profit_df.index)
+
+    # 删除原有的股票池
     objs = TqSellWhenLargeDepartureStrategyOne.objects
+    objs.all().delete()
+    # 写入新的股票池
+    engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test3?charset=utf8')
+    table_name = 'quanter_tqsellwhenlargedeparturestrategyone'
+    res_df.to_sql(table_name, engine, if_exists='append')
+
     context = {'res_list': objs.filter(isInPool=1), 'pool_date': filter_date}
     return render(request, 'quanter/StockTable.html', context)
 
