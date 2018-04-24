@@ -5,6 +5,7 @@ import datetime
 from sqlalchemy import create_engine
 from quanter.views import sell_when_large_departure, buy_when_large_departure
 from quanter.models import Stock, Dailydata, BackTest
+import math
 
 
 # 测试股票池 选出三年下来收益较高的
@@ -387,26 +388,27 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
         yesterday = date_index[yesterday_i]
         the_day_before_yesterday_i = i - 2
         the_day_before_yesterday = date_index[the_day_before_yesterday_i]
-        # 判断今天是否可以交易，close数据不为0视为可交易，close数据为0视为不可交易
-        if close_series_dict[code][today] <= 0.0:  # 不可交易，跳过这一天
-            print("今天不可交易")
-            continue
-        else:  # 今天可以交易获取昨天和前天的数据，要跳过数据为0的日期
-            while close_series_dict[code][yesterday] <= 0.0:
-                print("往前推一天获取昨天数据")
-                yesterday_i -= 1
-                yesterday = date_index[yesterday_i]
-                the_day_before_yesterday_i = yesterday_i - 1
-                the_day_before_yesterday = date_index[the_day_before_yesterday_i]
-            while close_series_dict[code][the_day_before_yesterday] <= 0.0:
-                print("往前推一天获取前天数据")
-                the_day_before_yesterday_i -= 1
-                the_day_before_yesterday = date_index[the_day_before_yesterday_i]
-
+        print("today", today)
         if len(hold_stock) == 0:  # 持有的股票为空：
             for stock in stock_list:
                 # 获取相应股票的close_series, open_series, departure_series
                 code = stock.code
+                # 判断今天是否可以交易，close数据不为0视为可交易，close数据为0视为不可交易
+                if close_series_dict[code][today] <= 0.0:  # 不可交易，跳过这一天
+                    print("今天不可交易")
+                    continue
+                else:  # 今天可以交易获取昨天和前天的数据，要跳过数据为0的日期
+                    while close_series_dict[code][yesterday] <= 0.0:
+                        print("往前推一天获取昨天数据")
+                        yesterday_i -= 1
+                        yesterday = date_index[yesterday_i]
+                        the_day_before_yesterday_i = yesterday_i - 1
+                        the_day_before_yesterday = date_index[the_day_before_yesterday_i]
+                    while close_series_dict[code][the_day_before_yesterday] <= 0.0:
+                        print("往前推一天获取前天数据")
+                        the_day_before_yesterday_i -= 1
+                        the_day_before_yesterday = date_index[the_day_before_yesterday_i]
+
                 if sell_when_large_departure.is_buy_state(close_series_dict[code][today], open_series_dict[code][today],
                                                           close_series_dict[code][yesterday],
                                                           open_series_dict[code][yesterday],
@@ -435,7 +437,10 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
                     hold_stock.append(code)
                     order_code_series[today] = code
                     order_name_series[today] = stock.name
-                    order_hold_num_series[today] = int(left_money / close_series_dict[code][today])
+                    print("close_series_dict[code][today]", close_series_dict[code][today])
+                    print("left_money", left_money)
+                    print("")
+                    order_hold_num_series[today] = math.floor(left_money / close_series_dict[code][today])
                     hold_num = order_hold_num_series[today]
                     left_money -= hold_num * close_series_dict[code][today]
                     asset = hold_num * close_series_dict[code][today]
@@ -446,6 +451,10 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
                     break
         else:  # 持有的股票不为空：
             for code in hold_stock:
+                if close_series_dict[code][today] <= 0.0:  # 不可交易，跳过这一天
+                    print("今天不可交易")
+                    continue
+
                 asset = close_series_dict[code][today] * hold_num
                 if (buy_standard_flag == 1) & sell_when_large_departure.is_sell_state(
                         departure_series_dict[code][today]):

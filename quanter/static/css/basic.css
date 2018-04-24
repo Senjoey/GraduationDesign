@@ -32,7 +32,7 @@ body {
     color: #000;
     font-weight: 800;
     padding-bottom: 20px;
-    border-bottom: 2px solid #00CA79;
+    border-bottom: 2px solid #3774a3;
     margin-bottom: 10px;
 }
 
@@ -102,7 +102,7 @@ body {
     }
 
 .active-menu {
-    background-color: #00CA79!important;
+    background-color: #2e79d0!important;
 }
 .active-menu-top {
     background-color: #000!important;

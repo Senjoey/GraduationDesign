@@ -58,13 +58,13 @@
                         <h1 class="page-head-line">策略设置</h1>
                         <h3>策略描述</h3>
                         <p>
-                            均线趋势向上的背景下买进，在正乖离过大的位置卖出
+                            标准1：均线趋势向上的背景下买进，在正乖离过大的位置卖出
                         </p>
                         <p>
-                            利用均线趋势向下的背景里的负乖离买反弹，在接近向下均线的位置卖出
+                            标准2：利用均线趋势向下的背景里的负乖离买反弹，在接近向下均线的位置卖出
                         </p>
-                        <br />
-                        <h3 style="display: inline-block">策略设置</h3>
+
+                        <h3 style="display: inline-block">设置参数</h3>
                         <span class="glyphicon glyphicon-pencil point_icon" aria-hidden="true" onclick="toEdit()" id="negativeDepartureEditBtn" style="margin-left: 5px"></span>
                         <div>
                             <div class="readonly" id="positiveDepartureDiv">
@@ -95,6 +95,19 @@
                                 <input type="text" readonly id= "stopLoss" value="{{ setting.stop_loss }}" style="width: 70px; margin-left: 10px"/>
                             </div>
                         </div>
+                        <h3>参数介绍</h3>
+                        <p>
+                            正乖离：>=5.0，对应上述"正乖离过大的位置卖出"
+                        </p>
+                        <p>
+                            负乖离：<=-5.0，对应上述"负乖离买反弹"
+                        </p>
+                        <p>
+                            止盈：当日股价相对于买入时股票上涨的百分比
+                        </p>
+                        <p>
+                            止损：当日股价相对于买入时股价下跌的百分比
+                        </p>
                     </div>
                 </div>
                 <!-- /. ROW  -->

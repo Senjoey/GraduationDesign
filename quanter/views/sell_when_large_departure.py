@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from quanter.stock_data import StockDataService
-from quanter.models import TqBasicStockBool
+from quanter.models import TqBasicStockBool, TqStrategySetting
 import pandas as pd
 import datetime
 from sqlalchemy import create_engine
@@ -98,7 +98,7 @@ def is_buy_state(today_close, today_open, yesterday_close, yesterday_open, today
 
 # 是否达到卖的型态：正乖离过大的位置卖出
 def is_sell_state(departure_value):
-    if departure_value >= 5:
+    if departure_value >= get_positive_departure():
         return True
     return False
 
@@ -106,7 +106,7 @@ def is_sell_state(departure_value):
 # 是否需要止损
 def is_need_stopping_loss(latest_close, today_close):
     # 止损：相对买入时候跌破2%
-    if (today_close - latest_close)/latest_close <= -0.05:
+    if (today_close - latest_close)/latest_close <= -get_stop_loss():
         print("需要止损！")
         return True
     return False
@@ -114,10 +114,25 @@ def is_need_stopping_loss(latest_close, today_close):
 
 # 是否需要止盈
 def is_need_stopping_profit(latest_close, today_close):
-    if (today_close - latest_close)/latest_close >= 0.2:
+    if (today_close - latest_close)/latest_close >= get_stop_profit():
         print("需要止盈！")
         return True
     return False
+
+
+def get_positive_departure():
+    setting = TqStrategySetting.objects.all()[0]
+    return setting.positive_departure
+
+
+def get_stop_profit():
+    setting = TqStrategySetting.objects.all()[0]
+    return setting.stop_profit
+
+
+def get_stop_loss():
+    setting = TqStrategySetting.objects.all()[0]
+    return setting.stop_loss
 
 
 
