@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
 from quanter.models import FilterStock2014, FilterStock2015, FilterStock2016, \
-    FilterStock2017, TqSellWhenLargeDepartureStrategyOne, TqPoolDate, Stock, TqStrategySetting, StockProfit, BackTest
+    FilterStock2017, TqSellWhenLargeDepartureStrategyOne, TqPoolYear, Stock, TqStrategySetting, StockProfit, BackTest, BackTestTable
 import pandas as pd
 import json
 import datetime
@@ -376,6 +376,7 @@ def index(request):
 def three_k_index(request):
     strategy_set = TqStrategySetting.objects.all()[0]
     context = {'setting': strategy_set}
+
     return render(request, 'quanter/StrategyIntroduction.html', context)
 
 
@@ -384,7 +385,7 @@ def stock_charts(request):
     objs = TqSellWhenLargeDepartureStrategyOne.objects
 
     # 获取我的自选股list
-    query_set = list(objs.filter(isInPool=1, isChecked=1))
+    query_set = list(objs.filter(isChecked=1))
     my_stock = []
 
     for obj in query_set:
@@ -398,7 +399,8 @@ def stock_charts(request):
     back_test_end_date = str(back_test_res[len(back_test_res)-1].date)
     initial_money = back_test_res[0].left_money
     for test in back_test_res:
-        raw_data.append([str(test.date), test.profit_series])
+        raw_data.append([str(test.date), test.profit_series, test.flag])
+
     return render(request, 'quanter/StockCharts.html', {'my_stock_list': json.dumps(my_stock), 'list': raw_data,
                                                         'back_test_start_date': back_test_start_date,
                                                         'back_test_end_date': back_test_end_date,
@@ -410,20 +412,27 @@ def back_test_table(request):
     back_test_start_date = str(back_test_res[0].date)
     back_test_end_date = str(back_test_res[len(back_test_res) - 1].date)
     initial_money = back_test_res[0].left_money
-    context = {'res_list': back_test_res, 'back_test_start_date': back_test_start_date,
+    context = {'res_list': BackTestTable.objects.all(), 'back_test_start_date': back_test_start_date,
                'back_test_end_date': back_test_end_date, 'initial_money': initial_money}
     return render(request, "quanter/BackTestTable.html", context)
 
 
 def strategy_introduction(request):
     strategy_set = TqStrategySetting.objects.all()[0]
-    context = {'setting': strategy_set}
+    strategy_dict = {
+        'negative_departure': strategy_set.negative_departure,
+        'positive_departure': strategy_set.positive_departure,
+        'stop_profit': strategy_set.stop_profit,
+        'stop_loss': strategy_set.stop_loss
+    }
+    context = {'setting': strategy_set, 'strategyDict': json.dumps(strategy_dict)}
+
     return render(request, 'quanter/StrategyIntroduction.html', context)
 
 
 def stock_table(request):
     objs = TqSellWhenLargeDepartureStrategyOne.objects
-    pool_date_objs = TqPoolDate.objects
+    pool_date_objs = TqPoolYear.objects
     context = {'res_list': objs.filter(isInPool=1), 'pool_date': pool_date_objs.all()[0]}
     return render(request, 'quanter/StockTable.html', context)
 
@@ -471,12 +480,14 @@ def stock_mine(request):
 '''
 
 
-def change_filter_time(request):
+def change_filter_year(request):
     start_year = request.GET.get('start')
     end_year = request.GET.get('end')
-    filter_date = TqPoolDate.objects.all()[0]
-    filter_date.start_date = start_year
-    filter_date.end_date = end_year
+    filter_date = TqPoolYear.objects.all()[0]
+    filter_date.start_year = start_year
+    filter_date.end_year = end_year
+    filter_date.start_date = " "
+    filter_date.end_date = " "
     filter_date.save()
 
     # 选取平均收益率排名前30的股票，且平均收益率大于10%
@@ -516,6 +527,55 @@ def change_filter_time(request):
     context = {'res_list': objs.filter(isInPool=1), 'pool_date': filter_date}
     return render(request, 'quanter/StockTable.html', context)
 
+
+def change_filter_date(request):
+    start_date = request.GET.get('start')
+    end_date = request.GET.get('end')
+    filter_date = TqPoolYear.objects.all()[0]
+    filter_date.start_year = " "
+    filter_date.end_year = " "
+    filter_date.start_date = start_date
+    filter_date.end_date = end_date
+    filter_date.save()
+
+    # 对所有股票进行回测，将回测结果写入数据库
+    stocks = Stock.objects.all()
+    profit_list = []
+    code_list = []
+    name_list = []
+    for stock in stocks:
+        profit = multi_back_test.one_test_sell_when_large_departure(start_date, end_date, [stock.code], 100000.0)
+        print(profit)
+        if profit is None:
+            continue
+        profit_list.append(profit['profit'])
+        code_list.append(profit['code'])
+        name_list.append(stock.name)
+    res = pd.DataFrame(data={'code': code_list, 'profit': profit_list, 'name': name_list})
+    engine = create_engine('mysql+mysqlconnector://root:tanxiaoqiong@127.0.0.1:3306/test3?charset=utf8')
+    table_name = 'quanter_filterstockpool'
+    res.to_sql(table_name, engine, if_exists='append')
+    # 从数据库读取收益，进行排序，返回结果
+    res.set_index('code', inplace=True)
+    res.sort_index()
+    sorted_stock_profit_df = res.sort_values('profit', ascending=False)[0:30]  # 基于它排序过滤
+    sorted_above_ten_stock_profit_df = sorted_stock_profit_df[sorted_stock_profit_df.profit > 10]  # 过滤的结果
+    is_in_pool_series = pd.Series(1, sorted_above_ten_stock_profit_df.index)
+    is_checked_series = pd.Series(0, sorted_above_ten_stock_profit_df.index)
+    stock_pool_df = pd.DataFrame(data={
+        'name': sorted_above_ten_stock_profit_df['name'],
+        'profit': sorted_above_ten_stock_profit_df['profit'],
+        'isInPool': is_in_pool_series,
+        'isChecked': is_checked_series
+    }, index=sorted_above_ten_stock_profit_df.index)
+    # 删除原来的股票池
+    objs = TqSellWhenLargeDepartureStrategyOne.objects
+    objs.all().delete()
+    # 写入新的股票池
+    table_name = "quanter_tqsellwhenlargedeparturestrategyone"
+    stock_pool_df.to_sql(table_name, engine, if_exists='append')
+    context = {'res_list': objs.filter(isInPool=1), 'pool_date': filter_date}
+    return render(request, 'quanter/StockTable.html', context)
 
 '''
 添加自选股

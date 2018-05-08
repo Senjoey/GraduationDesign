@@ -4,7 +4,7 @@ import pandas as pd
 import datetime
 from sqlalchemy import create_engine
 from quanter.views import sell_when_large_departure, buy_when_large_departure
-from quanter.models import Stock, Dailydata, BackTest
+from quanter.models import Stock, Dailydata, BackTest, BackTestTable
 import math
 
 
@@ -132,7 +132,7 @@ def multi_test_buy_when_large_departure(start, end, code_to_test, total_money):
 
 
 # 合并了两个标准 回测单只股票
-def one_test_sell_when_large_departure(start, end, code_to_test, total_money, year_str):
+def one_test_sell_when_large_departure(start, end, code_to_test, total_money):
     stock_list_to_test = []
     data_service = StockDataService()
     for code in code_to_test:
@@ -293,7 +293,7 @@ def one_test_sell_when_large_departure(start, end, code_to_test, total_money, ye
         profit_series[today] = 100 * (asset + left_money - initial_asset) / initial_asset
     profit = 100 * (asset + left_money - initial_asset) / initial_asset
     print("profit: ", profit)
-    return {'code': code_to_test[0], year_str+'profit': profit}
+    return {'code': code_to_test[0], 'profit': profit}
 
 
 def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
@@ -414,7 +414,7 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
                                                           open_series_dict[code][yesterday],
                                                           ma20_series_round_dict[code][today],
                                                           departure_series_dict[code][today]):
-                    hold_stock.append(code)
+                    hold_stock.append({'code': code, 'name': stock.name})
                     order_code_series[today] = code
                     order_name_series[today] = stock.name
                     order_hold_num_series[today] = int(left_money / close_series_dict[code][today])
@@ -434,7 +434,7 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
                                                            close_series_dict[code][the_day_before_yesterday],
                                                            open_series_dict[code][the_day_before_yesterday],
                                                            departure_series_dict[code][today]):
-                    hold_stock.append(code)
+                    hold_stock.append({'code': code, 'name': stock.name})
                     order_code_series[today] = code
                     order_name_series[today] = stock.name
                     print("close_series_dict[code][today]", close_series_dict[code][today])
@@ -450,7 +450,9 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
                     print("标准2buy!!today: ", today, ' code: ', code)
                     break
         else:  # 持有的股票不为空：
-            for code in hold_stock:
+            for item in hold_stock:
+                code = item['code']
+                name = item['name']
                 if close_series_dict[code][today] <= 0.0:  # 不可交易，跳过这一天
                     print("今天不可交易")
                     continue
@@ -458,10 +460,11 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
                 asset = close_series_dict[code][today] * hold_num
                 if (buy_standard_flag == 1) & sell_when_large_departure.is_sell_state(
                         departure_series_dict[code][today]):
-                    hold_stock.remove(code)
+                    hold_stock.pop()
+
                     flag_series[today] = "标准1卖出"
-                    order_code_series[today] = " "
-                    order_name_series[today] = " "
+                    order_code_series[today] = code
+                    order_name_series[today] = name
                     order_hold_num_series[today] = 0.0
                     hold_num = 0.0
                     left_money += asset
@@ -469,10 +472,10 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
                     price_series[today] = close_series_dict[code][today]
                 elif (buy_standard_flag == 2) & buy_when_large_departure.is_sell_state(
                         departure_series_dict[code][today]):
-                    hold_stock.remove(code)
+                    hold_stock.pop()
                     flag_series[today] = "标准2卖出"
-                    order_code_series[today] = " "
-                    order_name_series[today] = " "
+                    order_code_series[today] = code
+                    order_name_series[today] = name
                     order_hold_num_series[today] = 0.0
                     hold_num = 0.0
                     left_money += asset
@@ -480,20 +483,20 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
                     price_series[today] = close_series_dict[code][today]
                 elif sell_when_large_departure.is_need_stopping_profit(latest_buy_close,
                                                                        close_series_dict[code][today]):
-                    hold_stock.remove(code)
+                    hold_stock.pop()
                     flag_series[today] = "止盈卖出"
-                    order_code_series[today] = " "
-                    order_name_series[today] = " "
+                    order_code_series[today] = code
+                    order_name_series[today] = name
                     order_hold_num_series[today] = 0.0
                     hold_num = 0.0
                     left_money += asset
                     asset = 0
                     price_series[today] = close_series_dict[code][today]
                 elif sell_when_large_departure.is_need_stopping_loss(latest_buy_close, close_series_dict[code][today]):
-                    hold_stock.remove(code)
+                    hold_stock.pop()
                     flag_series[today] = "止损卖出"
-                    order_code_series[today] = " "
-                    order_name_series[today] = " "
+                    order_code_series[today] = code
+                    order_name_series[today] = name
                     order_hold_num_series[today] = 0.0
                     hold_num = 0.0
                     left_money += asset
@@ -503,7 +506,7 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
                     order_code_series[today] = order_code_series[yesterday]
                     order_name_series[today] = order_name_series[yesterday]
                     order_hold_num_series[today] = hold_num
-                    price_series[today] = close_series_dict[code][today]
+                    # price_series[today] = close_series_dict[code][today]
         asset_series[today] = asset
         left_money_series[today] = left_money
         profit_series[today] = 100 * (asset + left_money - initial_asset) / initial_asset
@@ -517,6 +520,11 @@ def multi_test_sell_when_large_departure(start, end, code_to_test, total_money):
     table_name = 'quanter_backtest'
     BackTest.objects.all().delete()
     res_df.to_sql(table_name, engine, if_exists='append')
+
+    table_name = 'quanter_backtesttable'
+    BackTestTable.objects.all().delete()
+    res_operation_df = res_df[res_df.price_series > 0.0]
+    res_operation_df.to_sql(table_name, engine, if_exists='append')
     return res_df
 
 

@@ -133,7 +133,9 @@
     <!-- /. FOOTER  -->
     <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
     <!-- JQUERY SCRIPTS -->
-
+    <script>
+        var strategyDict = {{ strategyDict|safe }};
+    </script>
     <script src="../../static/js/jquery-1.10.2.js"></script>
     <!-- BOOTSTRAP SCRIPTS -->
     <script src="../../static/js/bootstrap.js"></script>
@@ -142,6 +144,7 @@
     <!-- CUSTOM SCRIPTS -->
     <script src="../../static/js/custom.js"></script>
     <script src="../../static/js/quanter/strategysetting.js"></script>
+
 
 </body>
 </html>

@@ -15,7 +15,8 @@ urlpatterns = [
     path('stock_mine',  three_k.stock_mine, name='stock_mine'),
 
     # 修改股票池筛选时间
-    path('change_filter_time', three_k.change_filter_time, name='change_filter_time'),
+    path('change_filter_year', three_k.change_filter_year, name='change_filter_year'),
+    path('change_filter_date', three_k.change_filter_date, name='change_filter_date'),
 
     # 添加自选股
     path('check_database', three_k.check_database, name='check_database'),

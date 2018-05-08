@@ -3,6 +3,16 @@ function backTest() {
     var endDate = $("#endDate").val();
     var totalMoney = $("#totalMoney").val();
 
+    if(!validateDate(startDate, endDate)) {
+        alert("结束日期不能小于开始日期！");
+        return;
+    }
+
+    if(parseInt(totalMoney) <= 0.0) {
+        alert("资金数额必须大于0！");
+        return;
+    }
+
     // myStockList
     var code_to_test = "";
     var i = 0;
@@ -32,7 +42,7 @@ function backTest() {
                 var myChart = echarts.init(document.getElementById('charts'));
                 var dates = data['date_list'];
                 var profits = data['profit_list'];
-                // alert(dates);
+                var flags = data['flag_list'];
 
                 var option = {
                     tooltip: {
@@ -58,14 +68,21 @@ function backTest() {
                             data: dates
                         },
                     yAxis: {
-                            type: 'value'
+                            type: 'value',
+                            axisLabel: {
+                                formatter: '{value} %'
+                            }
                         },
                     series: [
                             {
                                 name:'收益率(%)',
                                 type:'line',
-                                data:profits
-                            },
+                                data:profits,
+                                markPoint: {
+                                    symbolSize: 12,
+                                    data: addMarkPoint(dates, profits, flags)
+                                }
+                            }
                         ]
                     };
                     $(window).resize(function() {
@@ -77,78 +94,6 @@ function backTest() {
                  alert("发生异常");
              }
     });
-//     $.get("backtest?code="+code+"&start="+startDate+"&end="+endDate+"&totalMoney="+totalMoney,function(data,status){
-//
-//         // var res = data['profitRate_day'];
-//         console.log(data);
-//         var opts = {
-//       lines: 13 // The number of lines to draw
-//     , length: 28 // The length of each line
-//     , width: 14 // The line thickness
-//     , radius: 42 // The radius of the inner circle
-//     , scale: 1 // Scales overall size of the spinner
-//     , corners: 1 // Corner roundness (0..1)
-//     , color: '#000' // #rgb or #rrggbb or array of colors
-//     , opacity: 0.25 // Opacity of the lines
-//     , rotate: 0 // The rotation offset
-//     , direction: 1 // 1: clockwise, -1: counterclockwise
-//     , speed: 1 // Rounds per second
-//     , trail: 60 // Afterglow percentage
-//     , fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
-//     , zIndex: 2e9 // The z-index (defaults to 2000000000)
-//     , className: 'spinner' // The CSS class to assign to the spinner
-//     , top: '50%' // Top position relative to parent
-//     , left: '50%' // Left position relative to parent
-//     , shadow: false // Whether to render a shadow
-//     , hwaccel: false // Whether to use hardware acceleration
-//     , position: 'absolute' // Element positioning
-//     };
-//     var target = document.getElementById('charts');
-//     var spinner = new Spinner(opts).spin(target);
-//     spinner.spin();
-//         var myChart = echarts.init(document.getElementById('charts'));
-//         alert('成功了么...');
-//         var dates = data['index'];
-//         var profits = data['data'];
-//         var option = {
-//             tooltip: {
-//                 trigger: 'axis'
-//             },
-//             legend: {
-//                 data:['收益率(%)']
-//             },
-//             grid: {
-//                 left: '3%',
-//                 right: '4%',
-//                 bottom: '3%',
-//                 containLabel: true
-//             },
-//             toolbox: {
-//                 feature: {
-//                     saveAsImage: {}
-//                 }
-//             },
-//             xAxis: {
-//                 type: 'category',
-//                 boundaryGap: false,
-//                 data: dates
-//             },
-//             yAxis: {
-//                 type: 'value'
-//             },
-//             series: [
-//                 {
-//                     name:'收益率(%)',
-//                     type:'line',
-//                     data:profits
-//                 },
-//             ]
-//         };
-//         $(window).resize(function() {
-//             myChart.resize()
-//         });
-//         myChart.setOption(option);
-// });
 }
 
 $(function() {
@@ -159,11 +104,14 @@ $(function() {
     var profits = rawData.map(function(item) {
             return item[1]
             });
+    var flags = rawData.map(function (item) {
+            return item[2]
+            });
 
     var option = {
         tooltip: {
                 trigger: 'axis'
-            },
+        },
         legend: {
                 data:['收益率(%)']
             },
@@ -184,14 +132,21 @@ $(function() {
                 data: dates
             },
         yAxis: {
-                type: 'value'
+                type: 'value',
+                axisLabel: {
+                    formatter: '{value} %'
+                }
             },
         series: [
                 {
                     name:'收益率(%)',
                     type:'line',
-                    data:profits
-                },
+                    data:profits,
+                    markPoint: {
+                        symbolSize: 12,
+                        data: addMarkPoint(dates, profits, flags)
+                    }
+                }
             ]
         };
     $(window).resize(function() {
@@ -199,3 +154,27 @@ $(function() {
     });
     myChart.setOption(option);
 });
+
+function addMarkPoint(dates, profits, flags) {
+    var points = [];
+    for(var i=0;i<dates.length;i++){
+        var buyTag = flags[i].indexOf("买入");
+        var sellTag = flags[i].indexOf("卖出");
+        if(buyTag !== -1){
+            points.push({
+                name:"买入标记点",//这个只是名称，不会显示出来
+                xAxis:dates[i],
+                yAxis:profits[i],
+                symbol:'pin'
+            })
+        }else if(sellTag !== -1){
+            points.push({
+                name:"卖出标记点",//这个只是名称，不会显示出来
+                xAxis:dates[i],
+                yAxis:profits[i],
+                symbol:'diamond'
+            })
+        }
+    }
+    return points;
+}

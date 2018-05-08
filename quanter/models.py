@@ -9,15 +9,15 @@ class Stock(models.Model):
 
 
 class Dailydata(models.Model):
-    id = models.IntegerField(max_length=11, primary_key=True)
-    index = models.BigIntegerField()
-    date = models.DateField()
+    id = models.IntegerField()
+    # index = models.BigIntegerField()
+    date = models.DateField(primary_key=True)
     open = models.FloatField()
     close = models.FloatField()
     high = models.FloatField()
     low = models.FloatField()
     volume = models.FloatField()
-    code = models.CharField(max_length=50)
+    code = models.CharField(max_length=50, primary_key=True)
 
 
 # 自定义筛选股票的区间
@@ -33,6 +33,20 @@ class StockProfit(models.Model):
 
 # 回测结果
 class BackTest(models.Model):
+    id = models.IntegerField(max_length=20, primary_key=True)
+    date = models.DateField()
+    asset = models.FloatField()
+    flag = models.TextField()
+    left_money = models.FloatField()
+    order_code = models.TextField()
+    order_hold_num = models.FloatField()
+    order_name = models.TextField()
+    price_series = models.FloatField()
+    profit_series = models.FloatField()
+
+
+# 回测结果，保留了有买入卖出的部分
+class BackTestTable(models.Model):
     id = models.IntegerField(max_length=20, primary_key=True)
     date = models.DateField()
     asset = models.FloatField()
@@ -94,8 +108,10 @@ class TqBuyWhenLargeDepartureStrategyTwo(models.Model):
     isChecked = models.IntegerField()
 
 
-class TqPoolDate(models.Model):
+class TqPoolYear(models.Model):
     id = models.IntegerField(primary_key=True)
+    start_year = models.TextField()
+    end_year = models.TextField()
     start_date = models.TextField()
     end_date = models.TextField()
 
