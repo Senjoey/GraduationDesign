@@ -79,10 +79,6 @@
                                 <label for="negativeDeparture">负乖离: </label>
                                 <input id="negativeDeparture" readonly style="width: 70px" value="{{ setting.negative_departure }}" />
 {#                                <span class="glyphicon glyphicon-pencil point_icon" aria-hidden="true" onclick="toEdit()" id="negativeDepartureEditBtn"></span>#}
-                                <div id="negativeDepartureOperationBtns" style="display: inline-block; visibility: hidden">
-                                    <span class="glyphicon glyphicon-ok point_icon" aria-hidden="true" id="negativeDepartureSaveBtn" onclick="toSave()"></span>
-                                    <span class="glyphicon glyphicon-remove point_icon" aria-hidden="true" id="negativeDepartureCancelBtn" onclick="toCancel()"></span>
-                                </div>
                             </div>
                         </div>
                         <div>
@@ -96,6 +92,10 @@
                                 <label for="positiveDeparture">止  损: </label>
                                 <input type="text" readonly id= "stopLoss" value="{{ setting.stop_loss }}" style="width: 70px; margin-left: 10px"/>
                             </div>
+                        </div>
+                        <div id="negativeDepartureOperationBtns" style="display: inline-block;">
+                            <span class="glyphicon glyphicon-ok point_icon" aria-hidden="true" id="negativeDepartureSaveBtn" onclick="toSave()"></span>
+                            <span class="glyphicon glyphicon-remove point_icon" aria-hidden="true" id="negativeDepartureCancelBtn" onclick="toCancel()"></span>
                         </div>
                         <h3>参数介绍</h3>
                         <p>
