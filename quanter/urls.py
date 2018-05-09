@@ -8,7 +8,8 @@ urlpatterns = [
     path('',  three_k.three_k_index, name='index'),
     path('stock_charts',  three_k.stock_charts, name='stock_charts'),
     path('back_test_table',  three_k.back_test_table, name='back_test_table'),
-    path('strategy_introduction',  three_k.strategy_introduction, name='strategy_introduction'),
+    path('strategy_setting', three_k.strategy_setting, name='strategy_setting'),
+    path('strategy_introduction', three_k.strategy_introduction, name='strategy_introduction'),
 
     path('stock_table',  three_k.stock_table, name='stock_table'),
     path('<str:code>/<int:operation>', three_k.check_stock, name='check_stock'),
@@ -23,7 +24,7 @@ urlpatterns = [
     path('add_my_stock', three_k.add_my_stock, name='add_my_stock'),
 
     # 策略设置
-    path('strategy_setting', three_k.strategy_setting, name="strategy_setting"),
+    path('strategy_setting_modify', three_k.strategy_setting_modify, name="strategy_setting_modify"),
 
     # 回测
     path('back_test_multi_code', three_k.back_test_multi_code, name="back_test_multi_code"),

@@ -13,6 +13,11 @@ function backTest() {
         return;
     }
 
+    if(myStockList.length === 0){
+        alert("无选股！");
+        return;
+    }
+
     // myStockList
     var code_to_test = "";
     var i = 0;

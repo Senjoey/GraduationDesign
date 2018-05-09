@@ -43,7 +43,7 @@ function toSave() {
     // 读取参数，发起请求，存入数据库
     var stopProfit = $("#stopProfit").val();
     var stopLoss = $("#stopLoss").val();
-    window.location.href = "/quanter/strategy_setting?positiveDeparture=" + positiveDeparture + "&negativeDeparture=" +
+    window.location.href = "/quanter/strategy_setting_modify?positiveDeparture=" + positiveDeparture + "&negativeDeparture=" +
         negativeDeparture + "&stopProfit=" + stopProfit + "&stopLoss=" + stopLoss;
 
 }

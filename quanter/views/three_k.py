@@ -2,7 +2,8 @@ from django.http import HttpResponse
 from quanter.stock_data import StockDataService
 from quanter.three_k_strategy import ThreeKStrategy
 from quanter.models import FilterStock2014, FilterStock2015, FilterStock2016, \
-    FilterStock2017, TqSellWhenLargeDepartureStrategyOne, TqPoolYear, Stock, TqStrategySetting, StockProfit, BackTest, BackTestTable
+    FilterStock2017, TqSellWhenLargeDepartureStrategyOne, TqPoolYear, Stock, TqStrategySetting, StockProfit, BackTest, \
+    BackTestTable
 import pandas as pd
 import json
 import datetime
@@ -377,7 +378,7 @@ def three_k_index(request):
     strategy_set = TqStrategySetting.objects.all()[0]
     context = {'setting': strategy_set}
 
-    return render(request, 'quanter/StrategyIntroduction.html', context)
+    return render(request, 'quanter/StrategySetting.html', context)
 
 
 def stock_charts(request):
@@ -417,7 +418,7 @@ def back_test_table(request):
     return render(request, "quanter/BackTestTable.html", context)
 
 
-def strategy_introduction(request):
+def strategy_setting(request):
     strategy_set = TqStrategySetting.objects.all()[0]
     strategy_dict = {
         'negative_departure': strategy_set.negative_departure,
@@ -427,7 +428,11 @@ def strategy_introduction(request):
     }
     context = {'setting': strategy_set, 'strategyDict': json.dumps(strategy_dict)}
 
-    return render(request, 'quanter/StrategyIntroduction.html', context)
+    return render(request, 'quanter/StrategySetting.html', context)
+
+
+def strategy_introduction(request):
+    return render(request, 'quanter/StrategyIntroduction.html')
 
 
 def stock_table(request):
@@ -624,7 +629,7 @@ def add_my_stock(request):
 '''
 
 
-def strategy_setting(request):
+def strategy_setting_modify(request):
     positive_departure = request.GET.get('positiveDeparture')
     negative_departure = request.GET.get('negativeDeparture')
     stop_profit = request.GET.get('stopProfit')
@@ -638,7 +643,7 @@ def strategy_setting(request):
     strategy_set.save()
 
     context = {'setting': strategy_set}
-    return render(request, 'quanter/StrategyIntroduction.html', context)
+    return render(request, 'quanter/StrategySetting.html', context)
 
 '''
 选择策略部分

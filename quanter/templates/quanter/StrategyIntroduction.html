@@ -43,9 +43,11 @@
                         <a href="{% url 'back_test_table' %}"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> 测试结果</a>
                     </li>
                     <li>
-                        <a  class="active-menu" href="{% url 'strategy_introduction' %}"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> 策略设置</a>
+                        <a  href="{% url 'strategy_setting' %}"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> 策略设置</a>
                     </li>
-
+                    <li>
+                        <a  class="active-menu" href="{% url 'strategy_introduction' %}"><span class="glyphicon glyphicon-folder-close" aria-hidden="true"></span> 策略介绍</a>
+                    </li>
                 </ul>
             </div>
 
@@ -55,72 +57,70 @@
             <div id="page-inner">
                 <div class="row">
                     <div class="col-md-12">
-                        <h1 class="page-head-line">策略设置</h1>
-                        <h3>策略描述</h3>
+                        <h1 class="page-head-line">策略介绍</h1>
+                        <h3>三K理论的介绍</h3>
                         <p>
-                            标准1：均线趋势向上的背景下买进，在正乖离过大的位置卖出
+                            如下图所示为三K理论的介绍：
+                        </p>
+                        <img src="../../static/img/ThreeK.png" style="height: 291px; width: 500px; margin-bottom: 10px">
+                        <p>
+                            转强之后转多，继续阳上阳表现为涨势；
                         </p>
                         <p>
-                            标准2：利用均线趋势向下的背景里的负乖离买反弹，在接近向下均线的位置卖出
+                            转弱之后转空，继续阴下阴表现为跌势；
+                        </p>
+                        <p>
+                            转强之后转多失败，或是转多成功但之后阴包阳低表示止涨；
+                        </p>
+                        <p>
+                           转弱之后转空失败，或是转空成功但之后阳包阴表示止跌；
                         </p>
 
-                        <h3 style="display: inline-block">设置参数</h3>
-                        <span class="glyphicon glyphicon-pencil point_icon" aria-hidden="true" onclick="toEdit()" id="negativeDepartureEditBtn" style="margin-left: 5px"></span>
-                        <div>
-                            <div class="readonly" id="positiveDepartureDiv">
-                                <label for="positiveDeparture">正乖离: </label>
-                                <input type="text" readonly id= "positiveDeparture" value="{{ setting.positive_departure }}" style="width: 70px"/>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="readonly" id="negativeDepartureDiv">
-                                <label for="negativeDeparture">负乖离: </label>
-                                <input id="negativeDeparture" readonly style="width: 70px" value="{{ setting.negative_departure }}" />
-{#                                <span class="glyphicon glyphicon-pencil point_icon" aria-hidden="true" onclick="toEdit()" id="negativeDepartureEditBtn"></span>#}
-                                <div id="negativeDepartureOperationBtns" style="display: inline-block; visibility: hidden">
-                                    <span class="glyphicon glyphicon-ok point_icon" aria-hidden="true" id="negativeDepartureSaveBtn" onclick="toSave()"></span>
-                                    <span class="glyphicon glyphicon-remove point_icon" aria-hidden="true" id="negativeDepartureCancelBtn" onclick="toCancel()"></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="readonly" id="stopProfitDiv">
-                                <label for="positiveDeparture">止  盈: </label>
-                                <input type="text" readonly id= "stopProfit" value="{{ setting.stop_profit }}" style="width: 70px;margin-left: 10px"/>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="readonly" id="stopLossDiv">
-                                <label for="positiveDeparture">止  损: </label>
-                                <input type="text" readonly id= "stopLoss" value="{{ setting.stop_loss }}" style="width: 70px; margin-left: 10px"/>
-                            </div>
-                        </div>
-                        <h3>参数介绍</h3>
-                        <p>
-                            正乖离：>=5.0，对应上述"正乖离过大的位置卖出"
-                        </p>
-                        <p>
-                            负乖离：<=-5.0，对应上述"负乖离买反弹"
-                        </p>
-                        <p>
-                            止盈：当日股价相对于买入时股票上涨的百分比
-                        </p>
-                        <p>
-                            止损：当日股价相对于买入时股价下跌的百分比
-                        </p>
-                    </div>
-                </div>
-                <!-- /. ROW  -->
-                <div class="row">
-                    <div class="col-md-12">
-                        <!--<div class="alert alert-info">-->
-                            <!--This is a free responsive admin under cc3.0 license, so you can use it for personal and commercial use.-->
-                          <!--<br />-->
-                            <!--Enjoy this admin and for more please keep looking <a href="http://#/" target="_blank">www.cssmoban.com</a>-->
-                        <!--</div>-->
-                    </div>
-                </div>
+                        <h3>葛兰碧八大法则的介绍</h3>
+                        <div style="width: 70%">
+                            <p>
+                            葛兰碧八大交易法则，是利用价格与其移动平均线的关系作为买进与卖出讯号的依据。
+                            其认为价格的波动具有某种规律，但移动平均则代表着趋势的方向。
+                            因此，如果价格波动偏离趋势（即价格与移动平均的偏离），
+                            那么未来将会朝趋势方向修正，所以发生偏离时，是一个买卖讯号。
+                            </p>
+                            <p>
+                                目前价格与均线的差距称为乖离(bias)，bias=股价-MA，其中MA为移动平均(moving average)。
+                                当乖离越大时，价格修正的可能性就越高。因此乖离是一个有用的观察指标。
+                                另一方面，移动平均线是较长期的价格发展线，因此相较于价格线而言，移动平均线具有一种趋势的概念，
+                                且平均的日期越大，所代表的时间刻度就越大。但当趋势发生改变时，趋势线还没有感受到时，
+                                价格将会先反应，在这个时候，价格线将与移动平均线发生交叉现象，代表着趋势改变的含义，
+                                因此价格与均线的关系也是很有用的观察指标。葛兰碧八大交易法则，就是综合利用上述观察指标的原理，
+                                归纳出买进卖出讯号。
+                            </p>
+                            <p>
+                                本策略利用其中两个原则：
+                            </p>
+                            <p>
+                                1：价格突然暴跌，跌破平均线，且远离平均线，则有可能反弹上升，为买进信号
+                            </p>
+                            <p>
+                                2：价格突然暴涨，突破平均线，且远离平均线，则有可能反弹会跌，为卖出信号
+                            </p>
+                            <p>
+                                如下图所示，位置1表示线下负乖离买止跌，位置5表示线上正乖离空止涨，虚线为移动平均线：
+                            </p>
+                            <img src="../../static/img/GranvilleRules.png" style="height: 218px; width: 500px; margin-bottom: 10px">
+                            <p>
+                                综上，策略结合了三K理论与葛兰碧八大法则的内容，策略的主要标准如下：
+                            </p>
+                            <p>
+                                标准1：均线趋势向上的背景下买进，在正乖离过大的位置卖出
+                            </p>
+                            <p>
+                                标准2：利用均线趋势向下的背景里的负乖离买反弹，在接近向下均线的位置卖出
+                            </p>
 
+                        </div>
+
+                    </div>
+
+                </div>
             </div>
             <!-- /. PAGE INNER  -->
         </div>
@@ -133,9 +133,6 @@
     <!-- /. FOOTER  -->
     <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
     <!-- JQUERY SCRIPTS -->
-    <script>
-        var strategyDict = {{ strategyDict|safe }};
-    </script>
     <script src="../../static/js/jquery-1.10.2.js"></script>
     <!-- BOOTSTRAP SCRIPTS -->
     <script src="../../static/js/bootstrap.js"></script>
@@ -143,8 +140,5 @@
     <script src="../../static/js/jquery.metisMenu.js"></script>
     <!-- CUSTOM SCRIPTS -->
     <script src="../../static/js/custom.js"></script>
-    <script src="../../static/js/quanter/strategysetting.js"></script>
-
-
 </body>
 </html>
