@@ -43,6 +43,7 @@ class BackTest(models.Model):
     order_name = models.TextField()
     price_series = models.FloatField()
     profit_series = models.FloatField()
+    per_profit = models.FloatField()
 
 
 # 回测结果，保留了有买入卖出的部分
@@ -56,16 +57,16 @@ class BackTestTable(models.Model):
     order_hold_num = models.FloatField()
     order_name = models.TextField()
     price_series = models.FloatField()
-    profit_series = models.FloatField()
+    # profit_series = models.FloatField()
+    profit_money = models.FloatField()
+    per_profit = models.FloatField()
 
 
-# test2数据库
-class Ma(models.Model):
-    date = models.DateField()
-    ma20 = models.FloatField()
-    ma5 = models.FloatField()
-    ma20_departure_value = models.FloatField()
-    close = models.FloatField()
+class FilterStockPool(models.Model):
+    id = models.IntegerField(primary_key=True)
+    code = models.TextField()
+    name = models.TextField()
+    profit = models.FloatField()
 
 
 class MyStock(models.Model):
@@ -84,22 +85,7 @@ class TqStock(models.Model):
     isChecked = models.IntegerField()
 
 
-class TqBasicStockBool(models.Model):
-    id = models.IntegerField(primary_key=True)
-    code = models.TextField()
-    name = models.TextField()
-
-
-class TqSellWhenLargeDepartureStrategyOne(models.Model):
-    id = models.IntegerField(primary_key=True)
-    code = models.TextField()
-    name = models.TextField()
-    profit = models.FloatField()
-    isInPool = models.IntegerField()
-    isChecked = models.IntegerField()
-
-
-class TqBuyWhenLargeDepartureStrategyTwo(models.Model):
+class TqStockPool(models.Model):
     id = models.IntegerField(primary_key=True)
     code = models.TextField()
     name = models.TextField()
@@ -151,11 +137,5 @@ class FilterStock2017(models.Model):
     # name = models.CharField(max_length=11)
     profit2017 = models.FloatField()
 
-
-class FirstHundredStock2018yield(models.Model):
-    id = models.IntegerField(primary_key=True)
-    code = models.CharField(max_length=255)
-    # name = models.CharField(max_length=255)
-    yield2018 = models.FloatField()
 
 

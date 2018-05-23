@@ -1,4 +1,4 @@
-from quanter.models import Dailydata, Ma, Stock
+from quanter.models import Dailydata, Stock
 import pandas as pd
 
 
@@ -22,12 +22,6 @@ class StockDataService(object):
         df.sort_index()
         return df
 
-    def get_ma_related_data(self):
-        data_query_set = Ma.objects.all()
-        df = pd.DataFrame(list(data_query_set.values('date', 'ma20', 'ma5', 'ma20_departure_value', 'close')))
-        df.set_index('date', inplace=True)
-        df.sort_index()
-        return df
 
     def get_all_stock(self):
         # return Mystock.objects.all()

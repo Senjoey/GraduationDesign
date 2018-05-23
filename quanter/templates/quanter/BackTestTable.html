@@ -101,12 +101,12 @@
                                             <tr>
                                                 <th>交易日期</th>
                                                 <th>账户余额</th>
-                                                <th>股票单价</th>
+                                                <th>股票价格</th>
                                                 <th>股票名称</th>
                                                 <th>股票代码</th>
-                                                <th>股票金额</th>
                                                 <th>持有数量</th>
                                                 <th>操作</th>
+                                                <th>单笔收益</th>
                                                 <th>收益率%</th>
                                             </tr>
                                             </thead>
@@ -120,10 +120,10 @@
                                                     <td>{{ res.price_series }}</td>
                                                     <td>{{ res.order_name }}</td>
                                                     <td>{{ res.order_code }}</td>
-                                                    <td>{{ res.asset }}</td>
                                                     <td>{{ res.order_hold_num }}</td>
                                                     <td>{{ res.flag }}</td>
-                                                    <td>{{ res.profit_series }}</td>
+                                                    <td>{{ res.profit_money }}</td>
+                                                    <td>{{ res.per_profit }}</td>
                                                 </tr>
                                             {% endfor %}
 

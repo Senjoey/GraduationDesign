@@ -29,10 +29,6 @@ urlpatterns = [
     # 回测
     path('back_test_multi_code', three_k.back_test_multi_code, name="back_test_multi_code"),
 
-    # 选股
-    path('choose_stock', stock_pool.choose_stock, name='choose_stock'),
-    path('test_all_stock_sell_when_large_departure', sell_when_large_departure.test_all_stock_sell_when_large_departure, name='test_all_stock_sell_when_large_departure'),
-    path('test_all_stock_buy_when_large_departure', buy_when_large_departure.test_all_stock_buy_when_large_departure, name='test_all_stock_buy_when_large_departure'),
 
     # 测试Point One
     path('test_one_point', pointtest.test_one_point, name="test_one_point"),
